@@ -7,3 +7,6 @@
 ```
 pip install citrusdb
 ```
+
+## Example
+[pokedex search](https://replit.com/@debabratajr/pokedex-search)
