@@ -14,8 +14,17 @@ for j in range(0, 100):
     vector.append(arr)
 
 citrus.add(vector, ids)
-citrus.query(vector[5], 5)
 
+vector = []
+ids = np.arange(100, 150)
+for j in range(0, 50):
+    arr = []
+    for i in range(0, 1536):
+        arr.append(np.random.random())
+    vector.append(arr)
+
+citrus.add(vector, ids)
+citrus.query(vector[0])
 
 
 

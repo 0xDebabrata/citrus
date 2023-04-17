@@ -27,8 +27,17 @@ class HnswIndex:
             data,
             ids,
             replace_deleted = False):
+        max_elements = self._index.max_elements
+        curr_elements = self._index.element_count
+
+        # Increase index size 
+        if curr_elements + len(data) > max_elements:
+            new_size = max(curr_elements + len(data), 2 * max_elements)
+            print("New size", new_size)
+            self._index.resize_index(new_size)
+
         self._index.add_items(data, ids, replace_deleted)
-        print("Elements inserted", self._index.element_count)
+        print("Total elements in index", self._index.element_count)
 
     def knn_query(self, query_embedding, k = 1):
         labels, distances = self._index.knn_query(query_embedding, k)
