@@ -41,7 +41,7 @@ class HnswIndex:
 
     def knn_query(self, query_embedding, k = 1):
         labels, distances = self._index.knn_query(query_embedding, k)
-        return labels, distances
+        return labels[0], distances
 
     def get_dimension(self):
         return self._index.dim
