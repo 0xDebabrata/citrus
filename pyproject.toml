@@ -1,6 +1,6 @@
 [project]
 name = "citrusdb"
-version = "0.0.1"
+version = "0.1.2"
 
 authors = [
   { name="Debabrata Mondal", email="debabrata.js@protonmail.com" },
@@ -16,6 +16,7 @@ classifiers = [
 dependencies = [
   'hnswlib >= 0.7',
   'numpy >= 1.21.6',
+  'openai >= 0.27',
 ]
 
 [project.urls]
