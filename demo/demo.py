@@ -6,7 +6,7 @@ import json
 citrus = citrusdb.Client()
 
 # Create index
-citrus.create_index(max_elements=1000)
+citrus.create_index(max_elements=50, persist_directory="demo/db")
 
 pokemons = []
 documents = []
