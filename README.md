@@ -2,7 +2,7 @@
 ### open-source (distributed) vector database
 
 <p align="center">
-  Supported by
+  Special thanks to
 </p>
 <p align="center">
   <img align="center" src="https://www.getdevkit.com/logo.png" width=150 height=150 alt="DevKit" />
@@ -11,6 +11,7 @@
   <a href="https://www.getdevkit.com">DevKit - The Essential Developer Toolkit</a><br />
   DSoC 2023
 </p>
+
 
 ## Installation
 
