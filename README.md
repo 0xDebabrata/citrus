@@ -54,5 +54,5 @@ result, distances = citrus.query("What is it like to launch a startup", k=1)
 ```
 Go launch a repl on [Replit](https://replit.com) and see what result you get after runnig the query! `result` will contain the `ids` of the top `k` search hits.
 
-## Example    dfsdfsdfsdfsdsdfsdfs
+## Example
 [pokedex search](https://replit.com/@debabratajr/pokedex-search)
