@@ -1,11 +1,11 @@
-# citrus.
+# 🍋 citrus.
 ### open-source (distributed) vector database
 
 <p align="center">
   Special thanks to
 </p>
 <p align="center">
-  <img align="center" src="https://www.getdevkit.com/logo.png" width=150 height=150 alt="DevKit" />
+  <img align="center" src="https://www.getdevkit.com/logo.png" width=100 height=100 alt="DevKit" />
 </p>
 <p align="center">
   <a href="https://www.getdevkit.com">DevKit - The Essential Developer Toolkit</a><br />
