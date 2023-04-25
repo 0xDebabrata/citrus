@@ -1,4 +1,18 @@
+# Git ignore
+
+
 dist/
 citrusdb.egg-info/
 
+# Testing
+test/
+
+# Editor specific
+*.vim
+.vscode/
+
+# Virtual environments
 env/
+.venv/
+venv/
+__pycache__/
