@@ -1,6 +1,8 @@
 import os
 import pickle
-from typing import List, Optional
+from typing import Any, List, Optional
+from numpy import float32
+from numpy._typing import NDArray
 from citrusdb.db.index.hnswlib import HnswIndex
 
 
@@ -9,13 +11,13 @@ class LocalAPI:
     _parameters: dict
 
     def __init__(self):
-        self._db = HnswIndex(id="test")
+        self._db = HnswIndex(id="citrus")
 
     def create_index(
         self,
         max_elements: int = 1000,
         persist_directory: Optional[str] = None,
-        M: int = 16,
+        M: int = 64,
         ef_construction: int = 200,
         allow_replace_deleted: bool = False,
     ):
@@ -64,17 +66,17 @@ class LocalAPI:
         self,
         ids,
         documents: Optional[List[str]] = None,
-        embedding: Optional[List[List[float]]] = None,
+        embedding: Optional[NDArray[float32]] = None,
     ):
-        if embedding == None and documents == None:
+        if embedding is None and documents is None:
             raise ValueError("Please provide either embeddings or documents.")
 
-        if documents:
+        if documents is not None:
             from citrusdb.embedding.openai import get_embeddings
 
             embedding = get_embeddings(documents)
 
-        if embedding:
+        if embedding is not None:
             embedding_dim = len(embedding[0])
             index_dim = self._db.get_dimension()
 
@@ -118,22 +120,25 @@ class LocalAPI:
         with open(output_file, "wb") as f:
             pickle.dump(self._parameters, f)
 
+    def set_ef(self, ef: int):
+        self._db.set_ef(ef)
+
     def query(
         self,
-        document: Optional[str] = None,
-        query_embedding: Optional[List[float]] = None,
+        documents: Optional[List[str]] = None,
+        query_embeddings: Optional[NDArray[float32]] = None,
         k=1,
     ):
-        if query_embedding == None and document == None:
+        if query_embeddings is None and documents is None:
             raise ValueError("Please provide either an embedding" + " or a document.")
 
-        if document:
+        if documents is not None:
             from citrusdb.embedding.openai import get_embeddings
 
-            embedding = get_embeddings([document])
-            query_embedding = embedding[0]
+            embeddings = get_embeddings(documents)
+            query_embeddings = embeddings
 
-        return self._db.knn_query(query_embedding, k)
+        return self._db.knn_query(query_embeddings, k)
 
     def get_status(self):
         self._db.get_status()

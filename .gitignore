@@ -1,4 +1,8 @@
 dist/
 citrusdb.egg-info/
 
+__pycache__
+
+demo/citrus
+
 env/
