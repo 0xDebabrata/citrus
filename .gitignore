@@ -5,4 +5,15 @@ __pycache__
 
 demo/citrus
 
+# Testing
+test/
+
+# Editor specific
+*.vim
+.vscode/
+
+# Virtual environments
 env/
+.venv/
+venv/
+__pycache__/
