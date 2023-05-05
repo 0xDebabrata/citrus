@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="citrusdb",
-    version="0.1.3",
+    version="0.2.0",
     author="Debabrata Mondal",
     author_email="debabrata.js@protonmail.com",
     description="(distributed) vector database",
