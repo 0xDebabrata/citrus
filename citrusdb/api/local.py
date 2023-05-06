@@ -66,18 +66,18 @@ class LocalAPI:
         self,
         ids,
         documents: Optional[List[str]] = None,
-        embedding: Optional[NDArray[float32]] = None,
+        embeddings: Optional[NDArray[float32]] = None,
     ):
-        if embedding is None and documents is None:
+        if embeddings is None and documents is None:
             raise ValueError("Please provide either embeddings or documents.")
 
         if documents is not None:
             from citrusdb.embedding.openai import get_embeddings
 
-            embedding = get_embeddings(documents)
+            embeddings = get_embeddings(documents)
 
-        if embedding is not None:
-            embedding_dim = len(embedding[0])
+        if embeddings is not None:
+            embedding_dim = len(embeddings[0])
             index_dim = self._db.get_dimension()
 
             # Check whether the dimensions are equal
@@ -88,10 +88,10 @@ class LocalAPI:
                 )
 
             # Ensure no of ids = no of embeddings
-            if len(ids) != len(embedding):
+            if len(ids) != len(embeddings):
                 raise ValueError(f"Number of embeddings" + " and ids are different.")
 
-            self._db.add_items(embedding, ids)
+            self._db.add_items(embeddings, ids)
             if self._parameters["persist_directory"]:
                 self.save()
 
