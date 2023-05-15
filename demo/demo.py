@@ -6,7 +6,11 @@ import json
 citrus = citrusdb.Client()
 
 # Create index
-citrus.create_index(max_elements=50, persist_directory="demo/db")
+citrus.create_index(
+    name="pokemon",
+    max_elements=50,
+    persist_directory="demo/db"
+)
 
 pokemons = []
 documents = []
@@ -20,10 +24,18 @@ with open("demo/pokemon.jsonl", "r") as f:
 ids = np.arange(len(documents))
 
 # Insert documents to index
-citrus.add(ids, documents=documents)
+#citrus.add("pokemon", ids, documents=documents)
+citrus.get_status("pokemon")
 
 # Query with a text input
-results, distances = citrus.query("Has multiple forms of evolution", k=5)
+res = citrus.query(
+    "pokemon",
+    documents=["Likes to sleep", "eats bugs"],
+    k=5
+)
+
+if res:
+    results, distances = res
 
 def format(pokemon):
     return f"""Name: {pokemon["name"]}
@@ -33,5 +45,6 @@ Description: {pokemon["info"]["description"]}
 """
 
 # Print results
-for i in range(0, len(results)):
-    print(format(pokemons[results[i]]))
+for res in results:
+    for id in res:
+        print(format(pokemons[id]))
