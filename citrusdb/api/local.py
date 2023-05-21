@@ -26,7 +26,7 @@ class LocalAPI:
         ef_construction: int = 200,
         allow_replace_deleted: bool = False,
     ):
-        if not(self._sqlClient.check_index_exists(name)):
+        if self.persist_directory is not None and not(self._sqlClient.check_index_exists(name)):
             self._sqlClient.create_index(
                 name,
                 max_elements,
@@ -65,6 +65,10 @@ class LocalAPI:
             raise ValueError(f"Could not find index: {index}")
 
     def set_ef(self, index: str, ef: int):
+        if self.persist_directory is not None:
+            self._sqlClient.update_ef(index, ef)
+
+
         flag = 1
         for key in self._db.keys():
             if key == index:

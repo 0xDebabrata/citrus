@@ -61,3 +61,13 @@ class DB:
         self._con.commit()
         cur.close()
 
+    def update_ef(
+        self,
+        name: str,
+        ef: int
+    ):
+        cur = self._con.cursor()
+        parameters = (ef, name)
+        cur.execute(queries.UPDATE_EF, parameters)
+        self._con.commit()
+        cur.close()

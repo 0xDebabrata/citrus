@@ -33,3 +33,9 @@ SELECT index_id
 FROM index_manager
 WHERE name = ?
 '''
+
+UPDATE_EF = '''
+UPDATE index_manager
+SET ef = ?
+WHERE name = ?
+'''
