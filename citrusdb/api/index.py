@@ -4,6 +4,7 @@ from typing import Any, List, Optional
 from numpy import float32
 from numpy._typing import NDArray
 from citrusdb.db.index.hnswlib import HnswIndex
+from citrusdb.utils.utils import ensure_valid_path
 
 
 class Index:
@@ -32,9 +33,8 @@ class Index:
 
         if persist_directory:
             self._load_params()
-            if os.path.exists(
-                os.path.join(persist_directory, str(self._parameters["index_name"]))
-            ):
+
+            if ensure_valid_path(persist_directory, str(self._parameters["index_name"])):
                 self._db.load_index(
                     os.path.join(
                         persist_directory, str(self._parameters["index_name"])
@@ -44,9 +44,6 @@ class Index:
                     ),
                 )
             else:
-                if not (os.path.isdir(persist_directory)):
-                    os.makedirs(persist_directory)
-
                 self._db.init_index(
                     max_elements=max_elements,
                     M=M,
@@ -96,9 +93,7 @@ class Index:
                 self._save()
 
     def _load_params(self):
-        if os.path.exists(
-            os.path.join(self._parameters["persist_directory"], ".citrus_params")
-        ):
+        if not(ensure_valid_path(self._parameters["persist_directory"], "citrus_params")):
             filename = os.path.join(
                 self._parameters["persist_directory"], ".citrus_params"
             )
