@@ -93,7 +93,7 @@ class Index:
                 self._save()
 
     def _load_params(self):
-        if not(ensure_valid_path(self._parameters["persist_directory"], "citrus_params")):
+        if ensure_valid_path(self._parameters["persist_directory"], ".citrus_params"):
             filename = os.path.join(
                 self._parameters["persist_directory"], ".citrus_params"
             )

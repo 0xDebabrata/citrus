@@ -20,12 +20,21 @@ class LocalAPI:
 
     def create_index(
         self,
-        name,
+        name: str,
         max_elements: int = 1000,
         M: int = 64,
         ef_construction: int = 200,
         allow_replace_deleted: bool = False,
     ):
+        if not(self._sqlClient.check_index_exists(name)):
+            self._sqlClient.create_index(
+                name,
+                max_elements,
+                M,
+                ef_construction,
+                allow_replace_deleted
+            )
+
         self._db[name] = Index(
             name=name,
             max_elements=max_elements,
