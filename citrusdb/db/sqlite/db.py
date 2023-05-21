@@ -22,10 +22,14 @@ class DB:
         )
 
         cur = self._con.cursor()
-        res = cur.execute("SELECT name FROM sqlite_master")
-        if res.fetchone() is None:
-            res = cur.execute(queries.CREATE_INDEX_MANAGER_TABLE)
-            res = cur.execute("SELECT name FROM sqlite_master")
+        cur.execute("PRAGMA foreign_keys = ON")    # Enable foreign keys
+        cur.executescript(f'''
+        BEGIN;
+        {queries.CREATE_INDEX_MANAGER_TABLE}
+        {queries.CREATE_INDEX_DATA_TABLE}
+        END;
+        ''')
+        cur.close()
 
     def check_index_exists(
         self,
@@ -34,10 +38,11 @@ class DB:
         cur = self._con.cursor()
         parameters = (name,)
         res = cur.execute(queries.GET_INDEX_BY_NAME, parameters)
-        index = res.fetchone()
-        if index is None:
+        if res.fetchone() is None:
+            cur.close()
             return False
         else:
+            cur.close()
             return True
 
     def create_index(
@@ -52,6 +57,7 @@ class DB:
         cur = self._con.cursor()
         ef = ef_construction
         parameters = (name, dimensions, max_elements, M, ef, ef_construction, allow_replace_deleted)
-        cur.execute(queries.CREATE_INDEX, parameters)
+        cur.execute(queries.INSERT_INDEX_TO_MANAGER, parameters)
         self._con.commit()
+        cur.close()
 
