@@ -62,35 +62,12 @@ class Index:
     def add(
         self,
         ids,
-        documents: Optional[List[str]] = None,
-        embeddings: Optional[NDArray[float32]] = None,
+        embeddings: Optional[NDArray[float32]],
+        replace_deleted: bool,
     ):
-        if embeddings is None and documents is None:
-            raise ValueError("Please provide either embeddings or documents.")
-
-        if documents is not None:
-            from citrusdb.embedding.openai import get_embeddings
-
-            embeddings = get_embeddings(documents)
-
-        if embeddings is not None:
-            embedding_dim = len(embeddings[0])
-            index_dim = self._db.get_dimension()
-
-            # Check whether the dimensions are equal
-            if embedding_dim != index_dim:
-                raise ValueError(
-                    f"Embedding dimenstion ({embedding_dim}) and index "
-                    + f"dimension ({index_dim}) do not match."
-                )
-
-            # Ensure no of ids = no of embeddings
-            if len(ids) != len(embeddings):
-                raise ValueError(f"Number of embeddings" + " and ids are different.")
-
-            self._db.add_items(embeddings, ids)
-            if self._parameters["persist_directory"]:
-                self._save()
+        self._db.add_items(embeddings, ids, replace_deleted)
+        if self._parameters["persist_directory"]:
+            self._save()
 
     def _load_params(self):
         if ensure_valid_path(self._parameters["persist_directory"], ".citrus_params"):
@@ -137,4 +114,10 @@ class Index:
 
     def get_status(self):
         self._db.get_status()
+
+    def get_dimension(self):
+        return self._db.get_dimension()
+
+    def get_replace_deleted(self):
+        return self._parameters["allow_replace_deleted"]
 

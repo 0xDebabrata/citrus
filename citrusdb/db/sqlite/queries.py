@@ -16,22 +16,27 @@ CREATE TABLE IF NOT EXISTS index_data (
     id TEXT PRIMARY KEY,
     index_id INTEGER,
     text TEXT,
-    embedding BLOB,
+    embedding BLOB NOT NULL,
     metadata TEXT,
     FOREIGN KEY(index_id) REFERENCES index_manager(index_id) ON DELETE CASCADE
 );
+'''
+
+GET_INDEX_DETAILS_BY_NAME = '''
+SELECT index_id, name, dimensions, max_elements, m, ef, ef_construction, allow_replace_deleted
+FROM index_manager
+WHERE name = ?
+'''
+
+INSERT_DATA_TO_INDEX = '''
+INSERT INTO index_data
+VALUES(?, ?, ?, ?, ?)
 '''
 
 INSERT_INDEX_TO_MANAGER = '''
 INSERT INTO index_manager
 (name, dimensions, max_elements, m, ef, ef_construction, allow_replace_deleted)
 VALUES (?, ?, ?, ?, ?, ?, ?);
-'''
-
-GET_INDEX_BY_NAME = '''
-SELECT index_id
-FROM index_manager
-WHERE name = ?
 '''
 
 UPDATE_EF = '''

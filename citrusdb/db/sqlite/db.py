@@ -1,6 +1,6 @@
 import os
 import sqlite3
-from typing import Optional
+from typing import Optional, Tuple
 
 from citrusdb.utils.utils import ensure_valid_path
 import citrusdb.db.sqlite.queries as queries
@@ -31,19 +31,16 @@ class DB:
         ''')
         cur.close()
 
-    def check_index_exists(
+    def get_index_details(
         self,
         name: str
-    ) -> bool:
+    ) -> Optional[Tuple[int, str, int, int, int, int, int, bool]]:
         cur = self._con.cursor()
         parameters = (name,)
-        res = cur.execute(queries.GET_INDEX_BY_NAME, parameters)
-        if res.fetchone() is None:
-            cur.close()
-            return False
-        else:
-            cur.close()
-            return True
+        res = cur.execute(queries.GET_INDEX_DETAILS_BY_NAME, parameters)
+        row = res.fetchone()
+        cur.close()
+        return row
 
     def create_index(
         self,
@@ -58,6 +55,15 @@ class DB:
         ef = ef_construction
         parameters = (name, dimensions, max_elements, M, ef, ef_construction, allow_replace_deleted)
         cur.execute(queries.INSERT_INDEX_TO_MANAGER, parameters)
+        self._con.commit()
+        cur.close()
+
+    def insert_to_index(
+        self,
+        data
+    ):
+        cur = self._con.cursor()
+        cur.executemany(queries.INSERT_DATA_TO_INDEX, data)
         self._con.commit()
         cur.close()
 
