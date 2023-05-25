@@ -80,6 +80,8 @@ class Index:
     def delete_vectors(self, ids: List[int]):
         for id in ids:
             self._db.mark_deleted(id)
+        if self._parameters["persist_directory"]:
+            self._save()
 
     def _save(self):
         self._db.save_index(
