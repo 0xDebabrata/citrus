@@ -1,3 +1,4 @@
+from os import replace
 from citrusdb.api.index import Index
 from citrusdb.db.sqlite.db import DB
 
@@ -77,8 +78,7 @@ class LocalAPI:
                 embedding_dim = len(embeddings[0])
                 index_id = index_details[0]
                 index_dim = index_details[2]
-                replace_deleted = index_details[7]
-                print(index_id, index_dim, replace_deleted)
+                replace_deleted = True if index_details[7] else False
 
                 # Check whether the dimensions are equal
                 if embedding_dim != index_dim:
@@ -100,10 +100,19 @@ class LocalAPI:
                         embeddings[i],
                         None if metadatas is None else metadatas[i]
                     )
-                    data.append(row)
+                    data.append(row + row)
 
+                # Insert data into sqlite
                 if self.persist_directory is not None:
                     self._sqlClient.insert_to_index(data)
+
+                # Index vectors
+                self._db[index].add(
+                    ids=ids,
+                    embeddings=embeddings,
+                    replace_deleted=replace_deleted
+                )
+                print(replace_deleted)
         else:
             flag = 1
             for key in self._db.keys():
@@ -128,6 +137,32 @@ class LocalAPI:
                     embeddings=embeddings,
                     replace_deleted=replace_deleted
                 )
+
+    def delete_vectors(
+        self,
+        index: str,
+        ids: List[int],
+    ):
+        flag = 1
+        for key in self._db.keys():
+            if key == index:
+                flag = 0
+
+        if flag:
+            raise ValueError(f"Could not find index: {index}")
+
+        if self.persist_directory is not None:
+            index_details = self._sqlClient.get_index_details(index)
+            if index_details is None:
+                raise ValueError(f"Could not find index: {index}")
+
+            index_id = index_details[0]
+            self._sqlClient.delete_vectors_from_index(
+                index_id=index_id,
+                ids=ids
+            )
+
+        self._db[index].delete_vectors(ids)
 
     def set_ef(self, index: str, ef: int):
         if self.persist_directory is not None:

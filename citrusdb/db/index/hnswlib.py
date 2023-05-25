@@ -38,6 +38,9 @@ class HnswIndex:
     def load_index(self, path: str, allow_replace_deleted=False):
         self._index.load_index(path, allow_replace_deleted=allow_replace_deleted)
 
+    def mark_deleted(self, label: int):
+        self._index.mark_deleted(label)
+
     def save_index(self, path: str):
         self._index.save_index(path)
 

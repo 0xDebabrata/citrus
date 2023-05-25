@@ -77,6 +77,10 @@ class Index:
             with open(filename, "rb") as f:
                 self._parameters = pickle.load(f)
 
+    def delete_vectors(self, ids: List[int]):
+        for id in ids:
+            self._db.mark_deleted(id)
+
     def _save(self):
         self._db.save_index(
             os.path.join(

@@ -1,6 +1,6 @@
 import os
 import sqlite3
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple
 
 from citrusdb.utils.utils import ensure_valid_path
 import citrusdb.db.sqlite.queries as queries
@@ -55,6 +55,18 @@ class DB:
         ef = ef_construction
         parameters = (name, dimensions, max_elements, M, ef, ef_construction, allow_replace_deleted)
         cur.execute(queries.INSERT_INDEX_TO_MANAGER, parameters)
+        self._con.commit()
+        cur.close()
+
+    def delete_vectors_from_index(
+        self,
+        index_id: int,
+        ids: List[int]
+    ):
+        cur = self._con.cursor()
+        query = queries.DELETE_VECTORS_FROM_INDEX.format(", ".join("?" * len(ids)))
+        parameters = tuple(ids) + (index_id,)
+        cur.execute(query, parameters)
         self._con.commit()
         cur.close()
 
