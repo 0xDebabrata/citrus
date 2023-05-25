@@ -112,7 +112,6 @@ class LocalAPI:
                     embeddings=embeddings,
                     replace_deleted=replace_deleted
                 )
-                print(replace_deleted)
         else:
             flag = 1
             for key in self._db.keys():
