@@ -31,14 +31,14 @@ citrus = citrusdb.Client()
 # Create index
 citrus.create_index(
   max_elements=1000,            # increases dynamically as you insert more vectors
-  persist_directory="/db"       # save data and load index from disk
+  persist_directory="db"       # save data and load index from disk
 )
 ```
 
 #### 2. Insert elements
 ```py
 ids = [1, 2, 3]
-docuemnts = [
+documents = [
   "Your time is limited, so don't waste it living someone else's life",
   "I'd rather be optimistic and wrong than pessimistic and right.",
   "Running a start-up is like chewing glass and staring into the abyss."
