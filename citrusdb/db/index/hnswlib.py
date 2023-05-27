@@ -25,8 +25,8 @@ class HnswIndex:
 
         self._index.add_items(data, ids, replace_deleted)
 
-    def knn_query(self, query_embeddings, k=1):
-        labels, distances = self._index.knn_query(query_embeddings, k)
+    def knn_query(self, query_embeddings, k=1, filter_function=None):
+        labels, distances = self._index.knn_query(query_embeddings, k, filter=filter_function)
         return labels, distances
 
     def set_ef(self, ef: int):

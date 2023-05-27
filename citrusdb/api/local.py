@@ -1,10 +1,11 @@
-from os import replace
-from citrusdb.api.index import Index
-from citrusdb.db.sqlite.db import DB
-
+import json
 from typing import Dict, List, Optional
 from numpy import float32
 from numpy._typing import NDArray
+
+from citrusdb.api.index import Index
+from citrusdb.db.sqlite.db import DB
+from citrusdb.db.sqlite.query_builder import QueryBuilder
 
 
 class LocalAPI:
@@ -51,7 +52,7 @@ class LocalAPI:
         ids,
         documents: Optional[List[str]] = None,
         embeddings: Optional[NDArray[float32]] = None,
-        metadatas: Optional[Dict] = None
+        metadatas: Optional[List[Dict]] = None
     ):
         """
         Insert embeddings/text documents
@@ -59,6 +60,7 @@ class LocalAPI:
         ids: Unique ID for each element
         documents: List of strings to index
         embeddings: List of embeddings to index
+        metadatas: Additional metadata for each vector
         """
 
         if embeddings is None and documents is None:
@@ -98,7 +100,7 @@ class LocalAPI:
                         index_id,
                         None if documents is None else documents[i],
                         embeddings[i],
-                        None if metadatas is None else metadatas[i]
+                        None if metadatas is None else json.dumps(metadatas[i])
                     )
                     data.append(row + row)
 
@@ -182,7 +184,14 @@ class LocalAPI:
         documents: Optional[List[str]] = None,
         query_embeddings: Optional[NDArray[float32]] = None,
         k=1,
+        filters: Optional[List[Dict]] = None
     ):
+        allowed_ids = []
+        if filters is not None:
+            allowed_ids = self._sqlClient.filter_vectors(index, filters)
+
+        filter_function = lambda label: str(label) in allowed_ids
+
         flag = 1
         for key in self._db.keys():
             if key == index:
@@ -190,7 +199,8 @@ class LocalAPI:
                 return self._db[key].query(
                     documents=documents,
                     query_embeddings=query_embeddings,
-                    k=k
+                    k=k,
+                    filter_function=filter_function
                 )
 
         if flag:

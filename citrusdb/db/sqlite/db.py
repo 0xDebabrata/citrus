@@ -1,9 +1,10 @@
 import os
 import sqlite3
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from citrusdb.utils.utils import ensure_valid_path
 import citrusdb.db.sqlite.queries as queries
+from citrusdb.db.sqlite.query_builder import QueryBuilder
 
 
 class DB:
@@ -69,6 +70,14 @@ class DB:
         cur.execute(query, parameters)
         self._con.commit()
         cur.close()
+
+    def filter_vectors(self, index_name: str, filters: List[Dict]):
+        query_builder = QueryBuilder(self._con)
+        res = query_builder.execute_query(index_name, filters)
+        allowed_ids = []
+        for row in res:
+            allowed_ids.append(row[0])
+        return allowed_ids
 
     def insert_to_index(
         self,

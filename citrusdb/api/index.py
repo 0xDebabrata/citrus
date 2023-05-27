@@ -106,6 +106,7 @@ class Index:
         documents: Optional[List[str]] = None,
         query_embeddings: Optional[NDArray[float32]] = None,
         k=1,
+        filter_function=None
     ):
         if query_embeddings is None and documents is None:
             raise ValueError("Please provide either an embedding" + " or a document.")
@@ -116,7 +117,7 @@ class Index:
             embeddings = get_embeddings(documents)
             query_embeddings = embeddings
 
-        return self._db.knn_query(query_embeddings, k)
+        return self._db.knn_query(query_embeddings, k, filter_function)
 
     def get_status(self):
         self._db.get_status()
