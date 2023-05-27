@@ -1,24 +1,29 @@
+import os
 import json
 from typing import Dict, List, Optional
 from numpy import float32
 from numpy._typing import NDArray
+import shutil
 
 from citrusdb.api.index import Index
 from citrusdb.db.sqlite.db import DB
-from citrusdb.db.sqlite.query_builder import QueryBuilder
 
 
 class LocalAPI:
     _db: Dict[str, Index] 
     _sqlClient: DB
     persist_directory: Optional[str]
+    _TEMP_DIRECTORY = "citrus_temp"
 
     def __init__(self, persist_directory: Optional[str] = None):
         self._db = {}
         self.persist_directory = persist_directory
 
-        if persist_directory is not None:
-            self._sqlClient = DB(persist_directory)
+        if not(persist_directory) and os.path.isdir(self._TEMP_DIRECTORY):
+            # Cleanup previous sqlite data
+            shutil.rmtree(self._TEMP_DIRECTORY)
+
+        self._sqlClient = DB(persist_directory if persist_directory else self._TEMP_DIRECTORY)
 
     def create_index(
         self,
@@ -28,7 +33,7 @@ class LocalAPI:
         ef_construction: int = 200,
         allow_replace_deleted: bool = False,
     ):
-        if self.persist_directory is not None and not(self._sqlClient.get_index_details(name)):
+        if not(self._sqlClient.get_index_details(name)):
             self._sqlClient.create_index(
                 name,
                 max_elements,
@@ -66,117 +71,77 @@ class LocalAPI:
         if embeddings is None and documents is None:
             raise ValueError("Please provide either embeddings or documents.")
 
-        if self.persist_directory is not None:
-            index_details = self._sqlClient.get_index_details(index)
-            if index_details is None:
-                raise ValueError(f"Index with name '{index}' does not exist.")
+        index_details = self._sqlClient.get_index_details(index)
+        if index_details is None:
+            raise ValueError(f"Index with name '{index}' does not exist.")
 
-            if documents is not None:
-                from citrusdb.embedding.openai import get_embeddings
+        if (documents is not None) and (embeddings is None):
+            from citrusdb.embedding.openai import get_embeddings
 
-                embeddings = get_embeddings(documents)
+            embeddings = get_embeddings(documents)
 
-            if embeddings is not None:
-                embedding_dim = len(embeddings[0])
-                index_id = index_details[0]
-                index_dim = index_details[2]
-                replace_deleted = True if index_details[7] else False
+        if embeddings is not None:
+            embedding_dim = len(embeddings[0])
+            index_id = index_details[0]
+            index_dim = index_details[2]
+            replace_deleted = True if index_details[7] else False
 
-                # Check whether the dimensions are equal
-                if embedding_dim != index_dim:
-                    raise ValueError(
-                            f"Embedding dimenstion ({embedding_dim}) and index "
-                            + f"dimension ({index_dim}) do not match."
-                            )
+            # Check whether the dimensions are equal
+            if embedding_dim != index_dim:
+                raise ValueError(
+                        f"Embedding dimenstion ({embedding_dim}) and index "
+                        + f"dimension ({index_dim}) do not match."
+                        )
 
-                # Ensure no of ids = no of embeddings
-                if len(ids) != len(embeddings):
-                    raise ValueError(f"Number of embeddings" + " and ids are different.")
+            # Ensure no of ids = no of embeddings
+            if len(ids) != len(embeddings):
+                raise ValueError(f"Number of embeddings" + " and ids are different.")
 
-                data = []
-                for i in range(len(ids)):
-                    row = (
-                        ids[i],
-                        index_id,
-                        None if documents is None else documents[i],
-                        embeddings[i],
-                        None if metadatas is None else json.dumps(metadatas[i])
-                    )
-                    data.append(row + row)
-
-                # Insert data into sqlite
-                if self.persist_directory is not None:
-                    self._sqlClient.insert_to_index(data)
-
-                # Index vectors
-                self._db[index].add(
-                    ids=ids,
-                    embeddings=embeddings,
-                    replace_deleted=replace_deleted
+            data = []
+            for i in range(len(ids)):
+                row = (
+                    ids[i],
+                    index_id,
+                    None if documents is None else documents[i],
+                    embeddings[i],
+                    None if metadatas is None else json.dumps(metadatas[i])
                 )
-        else:
-            flag = 1
-            for key in self._db.keys():
-                if key == index:
-                    flag = 0
-                    break
-            if flag:
-                raise ValueError(f"Index with name '{index}' does not exist.")
+                data.append(row + row)
 
-            if documents is not None:
-                from citrusdb.embedding.openai import get_embeddings
+            # Insert data into sqlite
+            self._sqlClient.insert_to_index(data)
 
-                embeddings = get_embeddings(documents)
-
-            if embeddings is not None:
-                embedding_dim = len(embeddings[0])
-                index_dim = self._db[index].get_dimension()
-                replace_deleted = self._db[index].get_replace_deleted()
-
-                self._db[index].add(
-                    ids=ids,
-                    embeddings=embeddings,
-                    replace_deleted=replace_deleted
-                )
+            # Index vectors
+            self._db[index].add(
+                ids=ids,
+                embeddings=embeddings,
+                replace_deleted=replace_deleted
+            )
 
     def delete_vectors(
         self,
         index: str,
         ids: List[int],
     ):
-        flag = 1
-        for key in self._db.keys():
-            if key == index:
-                flag = 0
-
-        if flag:
+        index_details = self._sqlClient.get_index_details(index)
+        if index_details is None:
             raise ValueError(f"Could not find index: {index}")
 
-        if self.persist_directory is not None:
-            index_details = self._sqlClient.get_index_details(index)
-            if index_details is None:
-                raise ValueError(f"Could not find index: {index}")
-
-            index_id = index_details[0]
-            self._sqlClient.delete_vectors_from_index(
-                index_id=index_id,
-                ids=ids
-            )
+        index_id = index_details[0]
+        self._sqlClient.delete_vectors_from_index(
+            index_id=index_id,
+            ids=ids
+        )
 
         self._db[index].delete_vectors(ids)
 
     def set_ef(self, index: str, ef: int):
-        if self.persist_directory is not None:
-            self._sqlClient.update_ef(index, ef)
-
-        flag = 1
-        for key in self._db.keys():
-            if key == index:
-                flag = 0
-                self._db[key].set_ef(ef)
-
-        if flag:
+        index_details = self._sqlClient.get_index_details(index)
+        if index_details is None:
             raise ValueError(f"Could not find index: {index}")
+
+        self._sqlClient.update_ef(index, ef)
+        self._db[index].set_ef(ef)
 
     def query(
         self,
