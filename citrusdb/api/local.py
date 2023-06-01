@@ -165,7 +165,7 @@ class LocalAPI:
                     documents=documents,
                     query_embeddings=query_embeddings,
                     k=k,
-                    filter_function=filter_function
+                    filter_function=None if filters is None else filter_function
                 )
 
         if flag:
