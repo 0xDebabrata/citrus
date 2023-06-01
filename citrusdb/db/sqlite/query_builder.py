@@ -25,8 +25,6 @@ class QueryBuilder:
                     condition = f"metadata ->> '{field}' {operator} '{value}'"
                 conditions.append(condition)
             sql_query += " AND ".join(conditions)
-            
-            print(sql_query)
 
         return sql_query
 
