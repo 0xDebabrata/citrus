@@ -19,7 +19,8 @@ class DB:
         self._con = sqlite3.connect(
             os.path.join(
                 persist_directory, "citrus.db"
-            )
+            ),
+            check_same_thread=False
         )
 
         cur = self._con.cursor()

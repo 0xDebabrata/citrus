@@ -1,4 +1,6 @@
 hnswlib
 numpy
 openai
+fastapi
+uvicorn
 
