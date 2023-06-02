@@ -5,14 +5,20 @@ with open("README.md", "r") as fh:
 
 setup(
     name="citrusdb",
-    version="0.2.0",
+    version="0.3.1",
     author="Debabrata Mondal",
     author_email="debabrata.js@protonmail.com",
     description="(distributed) vector database",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/0xDebabrata/citrus",
-    packages=find_packages(exclude=["demo"]),
+    packages=(
+        find_packages(
+            exclude=["demo"]
+        ) +
+        ["citrusdb.db.index", "citrusdb.db.sqlite"]
+    ),
+    include_package_data=True,
     install_requires=[
         "numpy",
         "hnswlib",
