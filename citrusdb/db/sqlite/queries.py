@@ -28,6 +28,11 @@ DELETE FROM index_data
 WHERE id IN ({}) AND index_id = ?
 '''
 
+GET_ALL_INDEX_DETAILS = '''
+SELECT index_id, name, dimensions, max_elements, m, ef, ef_construction, allow_replace_deleted
+FROM index_manager
+'''
+
 GET_INDEX_DETAILS_BY_NAME = '''
 SELECT index_id, name, dimensions, max_elements, m, ef, ef_construction, allow_replace_deleted
 FROM index_manager
