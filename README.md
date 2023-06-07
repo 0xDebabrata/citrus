@@ -30,8 +30,8 @@ citrus = citrusdb.Client()
 
 # Create index
 citrus.create_index(
+  name="example",
   max_elements=1000,            # increases dynamically as you insert more vectors
-  persist_directory="db"       # save data and load index from disk
 )
 ```
 
@@ -44,7 +44,7 @@ documents = [
   "Running a start-up is like chewing glass and staring into the abyss."
 ]
 
-citrus.add(ids, documents=documents)
+citrus.add(index="example", ids=ids, documents=documents)
 ```
 You can directly pass vector embeddings as well. If you're passing a list of strings like we have done here, ensure you have your `OPENAI_API_KEY` in the environment. By default we use OpenAI to to generate the embeddings. Please reach out if you're looking for support from a different provider!
 
