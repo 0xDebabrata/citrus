@@ -50,7 +50,7 @@ You can directly pass vector embeddings as well. If you're passing a list of str
 
 #### 3. Search
 ```py
-result, distances = citrus.query("What is it like to launch a startup", k=1)
+result, distances = citrus.query(index="example", documents=["What is it like to launch a startup"], k=1)
 ```
 Go launch a repl on [Replit](https://replit.com) and see what result you get after running the query! `result` will contain the `ids` of the top `k` search hits.
 
