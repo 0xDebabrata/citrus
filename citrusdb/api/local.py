@@ -135,6 +135,25 @@ class LocalAPI:
 
         self._db[index].delete_vectors(ids)
 
+    def reload_indices(self):
+        """
+        Load all indices from disk to memory
+        """
+
+        indices = self._sqlClient.get_indices()
+        for index in indices:
+            index_name = index[1]
+            # Load index
+            self.create_index(
+                name=index_name,
+                max_elements=index[3],
+                M=index[4],
+                ef_construction=index[6],
+                allow_replace_deleted=index[7]
+            )
+            # Set ef value
+            self._db[index_name].set_ef(index[5])
+
     def set_ef(self, index: str, ef: int):
         index_details = self._sqlClient.get_index_details(index)
         if index_details is None:

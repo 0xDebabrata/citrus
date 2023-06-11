@@ -33,17 +33,6 @@ class DB:
         ''')
         cur.close()
 
-    def get_index_details(
-        self,
-        name: str
-    ) -> Optional[Tuple[int, str, int, int, int, int, int, bool]]:
-        cur = self._con.cursor()
-        parameters = (name,)
-        res = cur.execute(queries.GET_INDEX_DETAILS_BY_NAME, parameters)
-        row = res.fetchone()
-        cur.close()
-        return row
-
     def create_index(
         self,
         name: str,
@@ -79,6 +68,29 @@ class DB:
         for row in res:
             allowed_ids.append(row[0])
         return allowed_ids
+
+    def get_indices(self):
+        """
+        Fetch all index details from index_manager table.
+        Returns a list of tuples where each one corresponds to an index.
+        """
+
+        cur = self._con.cursor()
+        res = cur.execute(queries.GET_ALL_INDEX_DETAILS)
+        rows = res.fetchall()
+        cur.close()
+        return rows
+
+    def get_index_details(
+        self,
+        name: str
+    ) -> Optional[Tuple[int, str, int, int, int, int, int, bool]]:
+        cur = self._con.cursor()
+        parameters = (name,)
+        res = cur.execute(queries.GET_INDEX_DETAILS_BY_NAME, parameters)
+        row = res.fetchone()
+        cur.close()
+        return row
 
     def insert_to_index(
         self,
