@@ -24,7 +24,7 @@ class BaseDB(ABC):
         pass
 
     @abstractmethod
-    def filter_vectors(self, index_name: str, filters: List[Dict]):
+    def filter_vectors(self, index_name: str, filters: List[Dict]) -> List:
         pass
 
     @abstractmethod

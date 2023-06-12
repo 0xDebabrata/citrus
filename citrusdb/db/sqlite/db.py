@@ -2,12 +2,13 @@ import os
 import sqlite3
 from typing import Dict, List, Optional, Tuple
 
+from citrusdb.db import BaseDB
 from citrusdb.utils.utils import ensure_valid_path
 import citrusdb.db.sqlite.queries as queries
 from citrusdb.db.sqlite.query_builder import QueryBuilder
 
 
-class DB:
+class SQLiteDB(BaseDB):
     _con: sqlite3.Connection
 
     def __init__(

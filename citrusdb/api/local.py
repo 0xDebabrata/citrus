@@ -6,12 +6,13 @@ from numpy._typing import NDArray
 import shutil
 
 from citrusdb.api.index import Index
-from citrusdb.db.sqlite.db import DB
+from citrusdb.db import BaseDB
+from citrusdb.db.sqlite.db import SQLiteDB
 
 
 class LocalAPI:
     _db: Dict[str, Index] 
-    _sqlClient: DB
+    _SQLClient: BaseDB
     persist_directory: Optional[str]
     _TEMP_DIRECTORY = "citrus_temp"
 
@@ -23,7 +24,7 @@ class LocalAPI:
             # Cleanup previous sqlite data
             shutil.rmtree(self._TEMP_DIRECTORY)
 
-        self._sqlClient = DB(persist_directory if persist_directory else self._TEMP_DIRECTORY)
+        self._SQLClient = SQLiteDB(persist_directory if persist_directory else self._TEMP_DIRECTORY)
 
     def create_index(
         self,
@@ -33,8 +34,8 @@ class LocalAPI:
         ef_construction: int = 200,
         allow_replace_deleted: bool = False,
     ):
-        if not(self._sqlClient.get_index_details(name)):
-            self._sqlClient.create_index(
+        if not(self._SQLClient.get_index_details(name)):
+            self._SQLClient.create_index(
                 name,
                 max_elements,
                 M,
@@ -71,7 +72,7 @@ class LocalAPI:
         if embeddings is None and documents is None:
             raise ValueError("Please provide either embeddings or documents.")
 
-        index_details = self._sqlClient.get_index_details(index)
+        index_details = self._SQLClient.get_index_details(index)
         if index_details is None:
             raise ValueError(f"Index with name '{index}' does not exist.")
 
@@ -109,7 +110,7 @@ class LocalAPI:
                 data.append(row + row)
 
             # Insert data into sqlite
-            self._sqlClient.insert_to_index(data)
+            self._SQLClient.insert_to_index(data)
 
             # Index vectors
             self._db[index].add(
@@ -123,12 +124,12 @@ class LocalAPI:
         index: str,
         ids: List[int],
     ):
-        index_details = self._sqlClient.get_index_details(index)
+        index_details = self._SQLClient.get_index_details(index)
         if index_details is None:
             raise ValueError(f"Could not find index: {index}")
 
         index_id = index_details[0]
-        self._sqlClient.delete_vectors_from_index(
+        self._SQLClient.delete_vectors_from_index(
             index_id=index_id,
             ids=ids
         )
@@ -140,7 +141,7 @@ class LocalAPI:
         Load all indices from disk to memory
         """
 
-        indices = self._sqlClient.get_indices()
+        indices = self._SQLClient.get_indices()
         for index in indices:
             index_name = index[1]
             # Load index
@@ -155,11 +156,11 @@ class LocalAPI:
             self._db[index_name].set_ef(index[5])
 
     def set_ef(self, index: str, ef: int):
-        index_details = self._sqlClient.get_index_details(index)
+        index_details = self._SQLClient.get_index_details(index)
         if index_details is None:
             raise ValueError(f"Could not find index: {index}")
 
-        self._sqlClient.update_ef(index, ef)
+        self._SQLClient.update_ef(index, ef)
         self._db[index].set_ef(ef)
 
     def query(
@@ -172,7 +173,7 @@ class LocalAPI:
     ):
         allowed_ids = []
         if filters is not None:
-            allowed_ids = self._sqlClient.filter_vectors(index, filters)
+            allowed_ids = self._SQLClient.filter_vectors(index, filters)
 
         filter_function = lambda label: str(label) in allowed_ids
 
