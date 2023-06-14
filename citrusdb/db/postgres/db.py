@@ -46,8 +46,13 @@ class PostgresDB(BaseDB):
         index_id: int,
         ids: List[int]
     ):
+        """
+        Delete vectors with given list of IDs from specific index
+
+        index_id: ID of index where the elements belong
+        ids: List of IDs to be deleted
+        """
         parameters = (tuple(ids), index_id)
-        # Create new index entry to postgres db
         with self._pool.connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(queries.DELETE_VECTORS_FROM_INDEX, parameters)
@@ -62,22 +67,28 @@ class PostgresDB(BaseDB):
         return allowed_ids
 
     def get_indices(self):
-        cur = self._con.cursor()
-        cur.execute(queries.GET_ALL_INDEX_DETAILS)
-        rows = cur.fetchall()
-        cur.close()
-        return rows
+        """
+        Get all index details
+        """
+        with self._pool.connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(queries.GET_ALL_INDEX_DETAILS)
+                return cur.fetchall()
 
     def get_index_details(
         self,
         name: str
     ) -> Optional[Tuple[int, str, int, int, int, int, int, bool]]:
-        cur = self._con.cursor()
+        """
+        Get specific index details
+
+        name: Name of index to fetch
+        """
         parameters = (name,)
-        cur.execute(queries.GET_INDEX_DETAILS_BY_NAME, parameters)
-        row = cur.fetchone()
-        cur.close()
-        return row
+        with self._pool.connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(queries.GET_INDEX_DETAILS_BY_NAME, parameters)
+                return cur.fetchone()
 
     def insert_to_index(
         self,
