@@ -45,3 +45,8 @@ FROM index_manager
 WHERE name = %s
 '''
 
+UPDATE_EF = '''
+UPDATE index_manager
+SET ef = %s
+WHERE name = %s
+'''

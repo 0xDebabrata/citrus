@@ -104,9 +104,14 @@ class PostgresDB(BaseDB):
         name: str,
         ef: int
     ):
-        cur = self._con.cursor()
-        parameters = (ef, name)
-        cur.execute(queries.UPDATE_EF, parameters)
-        self._con.commit()
-        cur.close()
+        """
+        Update ef for an index
 
+        name: Name of index to be updated
+        ef: New ef value
+        """
+        parameters = (ef, name)
+        with self._pool.connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(queries.UPDATE_EF, parameters)
+                conn.commit()
