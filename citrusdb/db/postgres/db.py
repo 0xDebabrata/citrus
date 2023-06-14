@@ -33,12 +33,13 @@ class PostgresDB(BaseDB):
         allow_replace_deleted: bool,
         dimensions: Optional[int] = 1536,
     ):
-        cur = self._con.cursor()
         ef = ef_construction
         parameters = (name, dimensions, max_elements, M, ef, ef_construction, allow_replace_deleted)
-        cur.execute(queries.INSERT_INDEX_TO_MANAGER, parameters)
-        self._con.commit()
-        cur.close()
+        # Create new index entry to postgres db
+        with self._pool.connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(queries.INSERT_INDEX_TO_MANAGER, parameters)
+                conn.commit()
 
     def delete_vectors_from_index(
         self,

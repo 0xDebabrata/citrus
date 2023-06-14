@@ -22,3 +22,9 @@ CREATE TABLE IF NOT EXISTS index_data (
     FOREIGN KEY(index_id) REFERENCES index_manager(index_id) ON DELETE CASCADE
 );
 '''
+
+INSERT_INDEX_TO_MANAGER = '''
+INSERT INTO index_manager
+(name, dimensions, max_elements, m, ef, ef_construction, allow_replace_deleted)
+VALUES (%s, %s, %s, %s, %s, %s, %s);
+'''
