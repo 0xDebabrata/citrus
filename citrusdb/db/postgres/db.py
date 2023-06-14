@@ -46,12 +46,12 @@ class PostgresDB(BaseDB):
         index_id: int,
         ids: List[int]
     ):
-        cur = self._con.cursor()
-        query = queries.DELETE_VECTORS_FROM_INDEX.format(", ".join("?" * len(ids)))
-        parameters = tuple(ids) + (index_id,)
-        cur.execute(query, parameters)
-        self._con.commit()
-        cur.close()
+        parameters = (tuple(ids), index_id)
+        # Create new index entry to postgres db
+        with self._pool.connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(queries.DELETE_VECTORS_FROM_INDEX, parameters)
+                conn.commit()
 
     def filter_vectors(self, index_name: str, filters: List[Dict]):
         query_builder = QueryBuilder(self._con)

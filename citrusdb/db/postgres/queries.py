@@ -28,3 +28,8 @@ INSERT INTO index_manager
 (name, dimensions, max_elements, m, ef, ef_construction, allow_replace_deleted)
 VALUES (%s, %s, %s, %s, %s, %s, %s);
 '''
+
+DELETE_VECTORS_FROM_INDEX = '''
+DELETE FROM index_data
+WHERE id IN %s AND index_id = %s
+'''
