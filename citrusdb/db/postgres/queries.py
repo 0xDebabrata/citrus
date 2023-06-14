@@ -23,12 +23,6 @@ CREATE TABLE IF NOT EXISTS index_data (
 );
 '''
 
-INSERT_INDEX_TO_MANAGER = '''
-INSERT INTO index_manager
-(name, dimensions, max_elements, m, ef, ef_construction, allow_replace_deleted)
-VALUES (%s, %s, %s, %s, %s, %s, %s);
-'''
-
 DELETE_VECTORS_FROM_INDEX = '''
 DELETE FROM index_data
 WHERE id IN %s AND index_id = %s
@@ -43,6 +37,19 @@ GET_INDEX_DETAILS_BY_NAME = '''
 SELECT index_id, name, dimensions, max_elements, m, ef, ef_construction, allow_replace_deleted
 FROM index_manager
 WHERE name = %s
+'''
+
+INSERT_DATA_TO_INDEX = '''
+INSERT INTO index_data
+VALUES(%s, %s, %s, %s, %s)
+ON CONFLICT(id, index_id)
+DO UPDATE SET id = %s, index_id = %s, text = %s, embedding = %s, metadata = %s
+'''
+
+INSERT_INDEX_TO_MANAGER = '''
+INSERT INTO index_manager
+(name, dimensions, max_elements, m, ef, ef_construction, allow_replace_deleted)
+VALUES (%s, %s, %s, %s, %s, %s, %s);
 '''
 
 UPDATE_EF = '''

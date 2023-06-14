@@ -94,10 +94,15 @@ class PostgresDB(BaseDB):
         self,
         data
     ):
-        cur = self._con.cursor()
-        cur.executemany(queries.INSERT_DATA_TO_INDEX, data)
-        self._con.commit()
-        cur.close()
+        """
+        Insert vectors to index
+
+        data: Tuple of tuples corresponding to each row
+        """
+        with self._pool.connection() as conn:
+            with conn.cursor() as cur:
+                cur.executemany(queries.INSERT_DATA_TO_INDEX, data)
+                conn.commit()
 
     def update_ef(
         self,
