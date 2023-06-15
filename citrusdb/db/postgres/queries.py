@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS index_manager (
     m INTEGER NOT NULL,
     ef INTEGER NOT NULL,
     ef_construction INTEGER NOT NULL,
-    allow_replace_deleted INTEGER NOT NULL
+    allow_replace_deleted BOOLEAN NOT NULL
 );
 '''
 

@@ -113,7 +113,7 @@ class LocalAPI:
                     ids[i],
                     index_id,
                     None if documents is None else documents[i],
-                    embeddings[i],
+                    json.dumps(embeddings[i].tolist()),
                     None if metadatas is None else json.dumps(metadatas[i])
                 )
                 data.append(row + row)
@@ -151,6 +151,7 @@ class LocalAPI:
         """
 
         indices = self._SQLClient.get_indices()
+        print("Indices: ", indices)
         for index in indices:
             index_name = index[1]
             # Load index

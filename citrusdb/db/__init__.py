@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, List, Tuple, Optional
+from typing import Any, Dict, List, Tuple, Optional
 
 
 class BaseDB(ABC):
@@ -28,7 +28,7 @@ class BaseDB(ABC):
         pass
 
     @abstractmethod
-    def get_indices(self):
+    def get_indices(self) -> List[Any]:
         pass
 
     @abstractmethod

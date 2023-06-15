@@ -12,7 +12,6 @@ class PostgresDB(BaseDB):
         self,
         **kwargs: Dict[str, Any]
     ):
-        print(kwargs)
         # Setup connection pool
         self._pool = ConnectionPool(kwargs=kwargs)
 
@@ -57,15 +56,16 @@ class PostgresDB(BaseDB):
                 cur.execute(queries.DELETE_VECTORS_FROM_INDEX, parameters)
                 conn.commit()
 
-    '''
     def filter_vectors(self, index_name: str, filters: List[Dict]):
+        return []
+        '''
         query_builder = QueryBuilder(self._con)
         res = query_builder.execute_query(index_name, filters)
         allowed_ids = []
         for row in res:
             allowed_ids.append(row[0])
         return allowed_ids
-    '''
+        '''
 
     def get_indices(self):
         """
