@@ -57,15 +57,19 @@ class PostgresDB(BaseDB):
                 conn.commit()
 
     def filter_vectors(self, index_name: str, filters: List[Dict]):
-        return []
-        '''
-        query_builder = QueryBuilder(self._con)
-        res = query_builder.execute_query(index_name, filters)
-        allowed_ids = []
-        for row in res:
-            allowed_ids.append(row[0])
-        return allowed_ids
-        '''
+        """
+        Get list of IDs of vectors that match filters.
+
+        index_name: Name of index where the elements belong
+        filters: List of filters to be applied
+        """
+        with self._pool.connection() as conn:
+            query_builder = QueryBuilder(conn)
+            res = query_builder.execute_query(index_name, filters)
+            allowed_ids = []
+            for row in res:
+                allowed_ids.append(row[0])
+            return allowed_ids
 
     def get_indices(self):
         """
