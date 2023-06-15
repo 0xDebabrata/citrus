@@ -1,8 +1,6 @@
-import psycopg
 from psycopg_pool import ConnectionPool
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from citrusdb.db import BaseDB
-from citrusdb.utils.utils import ensure_valid_path
 import citrusdb.db.postgres.queries as queries
 from citrusdb.db.postgres.query_builder import QueryBuilder
 
@@ -12,10 +10,11 @@ class PostgresDB(BaseDB):
 
     def __init__(
         self,
-        connection_string: str
+        **kwargs: Dict[str, Any]
     ):
+        print(kwargs)
         # Setup connection pool
-        self._pool = ConnectionPool(connection_string)
+        self._pool = ConnectionPool(kwargs=kwargs)
 
         # Create index_manager and index_data table if they don't exist already
         with self._pool.connection() as conn:
@@ -58,6 +57,7 @@ class PostgresDB(BaseDB):
                 cur.execute(queries.DELETE_VECTORS_FROM_INDEX, parameters)
                 conn.commit()
 
+    '''
     def filter_vectors(self, index_name: str, filters: List[Dict]):
         query_builder = QueryBuilder(self._con)
         res = query_builder.execute_query(index_name, filters)
@@ -65,6 +65,7 @@ class PostgresDB(BaseDB):
         for row in res:
             allowed_ids.append(row[0])
         return allowed_ids
+    '''
 
     def get_indices(self):
         """

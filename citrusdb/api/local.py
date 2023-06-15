@@ -1,12 +1,13 @@
 import os
 import json
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 from numpy import float32
 from numpy._typing import NDArray
 import shutil
 
 from citrusdb.api.index import Index
 from citrusdb.db import BaseDB
+from citrusdb.db.postgres.db import PostgresDB
 from citrusdb.db.sqlite.db import SQLiteDB
 
 
@@ -16,7 +17,12 @@ class LocalAPI:
     persist_directory: Optional[str]
     _TEMP_DIRECTORY = "citrus_temp"
 
-    def __init__(self, persist_directory: Optional[str] = None):
+    def __init__(
+        self,
+        persist_directory: Optional[str] = None,
+        database_type: Optional[str] = "sqlite",
+        **kwargs: Optional[Dict[str, Any]]
+    ):
         self._db = {}
         self.persist_directory = persist_directory
 
@@ -24,7 +30,10 @@ class LocalAPI:
             # Cleanup previous sqlite data
             shutil.rmtree(self._TEMP_DIRECTORY)
 
-        self._SQLClient = SQLiteDB(persist_directory if persist_directory else self._TEMP_DIRECTORY)
+        if persist_directory and database_type == "pg":
+            self._SQLClient = PostgresDB(**kwargs)
+        else:
+            self._SQLClient = SQLiteDB(persist_directory if persist_directory else self._TEMP_DIRECTORY)
 
     def create_index(
         self,
