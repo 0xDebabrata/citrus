@@ -1,4 +1,5 @@
 hnswlib
 numpy
 openai
-
+psycopg[c]
+psycopg[pool]

@@ -1,23 +1,23 @@
 CREATE_INDEX_MANAGER_TABLE = '''
 CREATE TABLE IF NOT EXISTS index_manager (
-    index_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    index_id BIGSERIAL PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,
     dimensions INTEGER NOT NULL,
     max_elements INTEGER NOT NULL,
     m INTEGER NOT NULL,
     ef INTEGER NOT NULL,
     ef_construction INTEGER NOT NULL,
-    allow_replace_deleted INTEGER NOT NULL
+    allow_replace_deleted BOOLEAN NOT NULL
 );
 '''
 
 CREATE_INDEX_DATA_TABLE = '''
 CREATE TABLE IF NOT EXISTS index_data (
-    id INTEGER,
-    index_id INTEGER,
+    id BIGINT,
+    index_id BIGINT,
     text TEXT,
-    embedding BLOB NOT NULL,
-    metadata TEXT,
+    embedding JSONB NOT NULL,
+    metadata JSONB,
     PRIMARY KEY(id, index_id),
     FOREIGN KEY(index_id) REFERENCES index_manager(index_id) ON DELETE CASCADE
 );
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS index_data (
 
 DELETE_VECTORS_FROM_INDEX = '''
 DELETE FROM index_data
-WHERE id IN ({}) AND index_id = ?
+WHERE id IN %s AND index_id = %s
 '''
 
 GET_ALL_INDEX_DETAILS = '''
@@ -36,24 +36,24 @@ FROM index_manager
 GET_INDEX_DETAILS_BY_NAME = '''
 SELECT index_id, name, dimensions, max_elements, m, ef, ef_construction, allow_replace_deleted
 FROM index_manager
-WHERE name = ?
+WHERE name = %s
 '''
 
 INSERT_DATA_TO_INDEX = '''
 INSERT INTO index_data
-VALUES(?, ?, ?, ?, ?)
+VALUES(%s, %s, %s, %s, %s)
 ON CONFLICT(id, index_id)
-DO UPDATE SET id = ?, index_id = ?, text = ?, embedding = ?, metadata = ?
+DO UPDATE SET id = %s, index_id = %s, text = %s, embedding = %s, metadata = %s
 '''
 
 INSERT_INDEX_TO_MANAGER = '''
 INSERT INTO index_manager
 (name, dimensions, max_elements, m, ef, ef_construction, allow_replace_deleted)
-VALUES (?, ?, ?, ?, ?, ?, ?);
+VALUES (%s, %s, %s, %s, %s, %s, %s);
 '''
 
 UPDATE_EF = '''
 UPDATE index_manager
-SET ef = ?
-WHERE name = ?
+SET ef = %s
+WHERE name = %s
 '''
