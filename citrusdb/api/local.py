@@ -185,7 +185,7 @@ class LocalAPI:
         if filters is not None:
             allowed_ids = self._SQLClient.filter_vectors(index, filters)
 
-        filter_function = lambda label: str(label) in allowed_ids
+        filter_function = lambda label: label in allowed_ids
 
         flag = 1
         for key in self._db.keys():

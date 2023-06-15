@@ -20,7 +20,8 @@ class QueryBuilder:
                 operator = filter["operator"]
                 value = filter["value"]
                 if isinstance(value, int) or isinstance(value, float):
-                    condition = f"metadata ->> '{field}' {operator} {value}"
+                    # ->> returns text in postgres
+                    condition = f"metadata ->> '{field}' {operator} '{value}'"
                 else:
                     condition = f"metadata ->> '{field}' {operator} '{value}'"
                 conditions.append(condition)
