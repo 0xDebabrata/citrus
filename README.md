@@ -56,3 +56,6 @@ Go launch a repl on [Replit](https://replit.com) and see what result you get aft
 
 ## Example
 [pokedex search](https://replit.com/@debabratajr/pokedex-search)
+
+## Facing issues?
+Feel free to open issues on this repository! Discord server coming soon!
