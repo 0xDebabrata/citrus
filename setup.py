@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="citrusdb",
-    version="0.3.3",
+    version="0.4.0",
     author="Debabrata Mondal",
     author_email="debabrata.js@protonmail.com",
     description="(distributed) vector database",
@@ -16,13 +16,15 @@ setup(
         find_packages(
             exclude=["demo"]
         ) +
-        ["citrusdb.db.index", "citrusdb.db.sqlite"]
+        ["citrusdb.db.index", "citrusdb.db.sqlite", "citrusdb.db.postgres"]
     ),
     include_package_data=True,
     install_requires=[
         "numpy",
         "hnswlib",
         "openai",
+        "psycopg[c]",
+        "psycopg[pool]"
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
