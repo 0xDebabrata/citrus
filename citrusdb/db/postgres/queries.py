@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS index_manager (
 
 CREATE_INDEX_DATA_TABLE = '''
 CREATE TABLE IF NOT EXISTS index_data (
-    id BIGINT,
+    vector_id BIGSERIAL PRIMARY KEY,
+    id text NOT NULL UNIQUE,
     index_id BIGINT,
     text TEXT,
     embedding JSONB NOT NULL,

@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS index_manager (
 
 CREATE_INDEX_DATA_TABLE = '''
 CREATE TABLE IF NOT EXISTS index_data (
-    id INTEGER,
+    vector_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id TEXT NOT NULL UNIQUE,
     index_id INTEGER,
     text TEXT,
     embedding BLOB NOT NULL,
