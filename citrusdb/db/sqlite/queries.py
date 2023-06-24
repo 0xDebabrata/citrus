@@ -14,12 +14,12 @@ CREATE TABLE IF NOT EXISTS index_manager (
 CREATE_INDEX_DATA_TABLE = '''
 CREATE TABLE IF NOT EXISTS index_data (
     vector_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    id TEXT NOT NULL UNIQUE,
+    id TEXT NOT NULL,
     index_id INTEGER,
     text TEXT,
     embedding BLOB NOT NULL,
     metadata TEXT,
-    PRIMARY KEY(id, index_id),
+    UNIQUE(id, index_id),
     FOREIGN KEY(index_id) REFERENCES index_manager(index_id) ON DELETE CASCADE
 );
 '''
@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS index_data (
 DELETE_VECTORS_FROM_INDEX = '''
 DELETE FROM index_data
 WHERE id IN ({}) AND index_id = ?
+RETURNING vector_id
 '''
 
 GET_ALL_INDEX_DETAILS = '''
@@ -40,11 +41,19 @@ FROM index_manager
 WHERE name = ?
 '''
 
+GET_VECTOR_IDS_OF_RESULTS = '''
+SELECT id
+FROM index_data
+WHERE vector_id IN ({}) AND index_id = ?
+'''
+
 INSERT_DATA_TO_INDEX = '''
 INSERT INTO index_data
+(id, index_id, text, embedding, metadata)
 VALUES(?, ?, ?, ?, ?)
 ON CONFLICT(id, index_id)
 DO UPDATE SET id = ?, index_id = ?, text = ?, embedding = ?, metadata = ?
+RETURNING vector_id
 '''
 
 INSERT_INDEX_TO_MANAGER = '''

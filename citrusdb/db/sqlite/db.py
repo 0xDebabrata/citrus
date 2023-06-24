@@ -3,6 +3,7 @@ import sqlite3
 from typing import Dict, List, Optional, Tuple
 
 from citrusdb.db import BaseDB
+from citrusdb.utils.types import IDs
 from citrusdb.utils.utils import ensure_valid_path
 import citrusdb.db.sqlite.queries as queries
 from citrusdb.db.sqlite.query_builder import QueryBuilder
@@ -52,14 +53,19 @@ class SQLiteDB(BaseDB):
     def delete_vectors_from_index(
         self,
         index_id: int,
-        ids: List[int]
+        ids: IDs
     ):
         cur = self._con.cursor()
         query = queries.DELETE_VECTORS_FROM_INDEX.format(", ".join("?" * len(ids)))
         parameters = tuple(ids) + (index_id,)
         cur.execute(query, parameters)
+
+        rows = cur.fetchall()
         self._con.commit()
         cur.close()
+
+        vector_ids = [row[0] for row in rows]
+        return vector_ids
 
     def filter_vectors(self, index_name: str, filters: List[Dict]):
         query_builder = QueryBuilder(self._con)
@@ -92,14 +98,43 @@ class SQLiteDB(BaseDB):
         cur.close()
         return row
 
+    def get_vector_ids_of_results(
+        self,
+        name: str,
+        results: List[List[int]]
+    ) -> List[IDs]:
+        lolo_vector_ids = []
+        index_details = self.get_index_details(name)
+        index_id = index_details[0]               # type: ignore
+
+        cur = self._con.cursor()
+        for ids in results:
+            query = queries.GET_VECTOR_IDS_OF_RESULTS.format(", ".join("?" * len(ids)))
+            parameters = ()
+            for id in ids:
+                parameters += (int(id),)
+            parameters += (index_id,)
+            res = cur.execute(query, parameters)
+            rows = res.fetchall()
+            lolo_vector_ids.append([row[0] for row in rows])
+        cur.close()
+
+        return lolo_vector_ids
+
     def insert_to_index(
         self,
         data
     ):
         cur = self._con.cursor()
-        cur.executemany(queries.INSERT_DATA_TO_INDEX, data)
+        vector_ids = []
+        for row in data:
+            res = cur.execute(queries.INSERT_DATA_TO_INDEX, row)
+            vector_ids.append(res.fetchone()[0])
+
         self._con.commit()
         cur.close()
+
+        return vector_ids
 
     def update_ef(
         self,

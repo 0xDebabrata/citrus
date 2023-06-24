@@ -9,6 +9,7 @@ from citrusdb.api.index import Index
 from citrusdb.db import BaseDB
 from citrusdb.db.postgres.db import PostgresDB
 from citrusdb.db.sqlite.db import SQLiteDB
+from citrusdb.utils.types import IDs
 
 
 class LocalAPI:
@@ -64,13 +65,14 @@ class LocalAPI:
     def add(
         self,
         index: str,
-        ids,
+        ids: IDs,
         documents: Optional[List[str]] = None,
         embeddings: Optional[NDArray[float32]] = None,
         metadatas: Optional[List[Dict]] = None
     ):
         """
         Insert embeddings/text documents
+
         index: Name of index
         ids: Unique ID for each element
         documents: List of strings to index
@@ -118,12 +120,12 @@ class LocalAPI:
                 )
                 data.append(row + row)
 
-            # Insert data into sqlite
-            self._SQLClient.insert_to_index(data)
+            # Insert data into DB
+            hnsw_labels = self._SQLClient.insert_to_index(data)
 
             # Index vectors
             self._db[index].add(
-                ids=ids,
+                ids=hnsw_labels,
                 embeddings=embeddings,
                 replace_deleted=replace_deleted
             )
@@ -131,19 +133,19 @@ class LocalAPI:
     def delete_vectors(
         self,
         index: str,
-        ids: List[int],
+        ids: IDs
     ):
         index_details = self._SQLClient.get_index_details(index)
         if index_details is None:
             raise ValueError(f"Could not find index: {index}")
 
         index_id = index_details[0]
-        self._SQLClient.delete_vectors_from_index(
+        hnsw_labels = self._SQLClient.delete_vectors_from_index(
             index_id=index_id,
             ids=ids
         )
 
-        self._db[index].delete_vectors(ids)
+        self._db[index].delete_vectors(hnsw_labels)
 
     def reload_indices(self):
         """
@@ -151,7 +153,6 @@ class LocalAPI:
         """
 
         indices = self._SQLClient.get_indices()
-        print("Indices: ", indices)
         for index in indices:
             index_name = index[1]
             # Load index
@@ -191,12 +192,17 @@ class LocalAPI:
         for key in self._db.keys():
             if key == index:
                 flag = 0
-                return self._db[key].query(
+                results, distances = self._db[key].query(
                     documents=documents,
                     query_embeddings=query_embeddings,
                     k=k,
                     filter_function=None if filters is None else filter_function
                 )
+                lolo_vector_ids = self._SQLClient.get_vector_ids_of_results(
+                    name=index,
+                    results=results
+                )
+                return lolo_vector_ids, distances
 
         if flag:
             raise ValueError(f"Could not find index: {index}")

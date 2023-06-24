@@ -9,7 +9,7 @@ class QueryBuilder:
 
     def build_query(self, index_name, filters):
         # Building the base SQL query
-        sql_query = f"SELECT d.id, d.index_id, d.text FROM index_data d JOIN index_manager m ON m.index_id = d.index_id WHERE m.name = '{index_name}'"
+        sql_query = f"SELECT d.vector_id, d.id, d.index_id, d.text FROM index_data d JOIN index_manager m ON m.index_id = d.index_id WHERE m.name = '{index_name}'"
 
         # Adding the filter criteria to the SQL query
         if filters:

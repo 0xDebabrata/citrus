@@ -4,6 +4,7 @@ from typing import Any, List, Optional
 from numpy import float32
 from numpy._typing import NDArray
 from citrusdb.db.index.hnswlib import HnswIndex
+from citrusdb.utils.types import IDs
 from citrusdb.utils.utils import ensure_valid_path
 
 
@@ -61,7 +62,7 @@ class Index:
 
     def add(
         self,
-        ids,
+        ids: List[int],
         embeddings: Optional[NDArray[float32]],
         replace_deleted: bool,
     ):

@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from citrusdb.db import BaseDB
 import citrusdb.db.postgres.queries as queries
 from citrusdb.db.postgres.query_builder import QueryBuilder
+from citrusdb.utils.types import IDs
 
 
 class PostgresDB(BaseDB):
@@ -42,7 +43,7 @@ class PostgresDB(BaseDB):
     def delete_vectors_from_index(
         self,
         index_id: int,
-        ids: List[int]
+        ids: IDs
     ):
         """
         Delete vectors with given list of IDs from specific index
@@ -50,11 +51,16 @@ class PostgresDB(BaseDB):
         index_id: ID of index where the elements belong
         ids: List of IDs to be deleted
         """
+
+        vector_ids = []
         parameters = (tuple(ids), index_id)
         with self._pool.connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(queries.DELETE_VECTORS_FROM_INDEX, parameters)
+                for vector_id in cur.execute(queries.DELETE_VECTORS_FROM_INDEX, parameters):
+                    vector_ids.append(vector_id)
                 conn.commit()
+
+        return vector_ids
 
     def filter_vectors(self, index_name: str, filters: List[Dict]):
         """
@@ -63,6 +69,7 @@ class PostgresDB(BaseDB):
         index_name: Name of index where the elements belong
         filters: List of filters to be applied
         """
+
         with self._pool.connection() as conn:
             query_builder = QueryBuilder(conn)
             res = query_builder.execute_query(index_name, filters)
@@ -95,6 +102,45 @@ class PostgresDB(BaseDB):
                 cur.execute(queries.GET_INDEX_DETAILS_BY_NAME, parameters)
                 return cur.fetchone()
 
+    def get_vector_ids_of_results(
+        self,
+        name: str,
+        results: List[List[int]]
+    ):
+        """
+        Get user facing IDs of results
+
+        name: Name of index
+        results: List of list of integer HNSW labels
+        """
+        lolo_vector_ids = []
+
+        index_details = self.get_index_details(name)
+        if not(index_details):
+            return
+        index_id = index_details[0]
+
+        with self._pool.connection() as conn:
+            with conn.cursor() as cur:
+                data = ()
+                for ids in results:
+                    ids_tuple = tuple(ids)
+                    data = data + (ids_tuple, index_id)
+
+                cur.executemany(
+                    queries.GET_VECTOR_IDS_OF_RESULTS,
+                    data,                                       # type: ignore
+                    returning=True
+                )
+                while True:
+                    lolo_vector_ids.append(cur.fetchone())      # type: ignore
+                    if not cur.nextset():
+                        break;
+
+                conn.commit()
+
+        return lolo_vector_ids
+
     def insert_to_index(
         self,
         data
@@ -104,10 +150,18 @@ class PostgresDB(BaseDB):
 
         data: Tuple of tuples corresponding to each row
         """
+        vector_ids = []
         with self._pool.connection() as conn:
             with conn.cursor() as cur:
-                cur.executemany(queries.INSERT_DATA_TO_INDEX, data)
+                cur.executemany(queries.INSERT_DATA_TO_INDEX, data, returning=True)
+                while True:
+                    vector_ids.append(cur.fetchone()[0])        # type: ignore
+                    if not cur.nextset():
+                        break;
+
                 conn.commit()
+
+        return vector_ids
 
     def update_ef(
         self,
