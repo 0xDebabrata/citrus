@@ -12,6 +12,20 @@
   DSoC 2023
 </p>
 
+<p align="center">
+  <a href="https://www.apache.org/licenses/LICENSE-2.0.html">
+  <img alt="License: Apache 2.0" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg">
+  </a>
+  <a href="https://github.com/0xDebabrata/citrus/commits/master">
+    <img alt="GitHub commits" src="https://img.shields.io/github/commit-activity/y/0xDebabrata/citrus?color=red&label=commits">
+  </a>
+  <a href="https://github.com/0xDebabrata/citrus/issues">
+    <img alt="GitHub issues" src="https://img.shields.io/github/issues/0xDebabrata/citrus?color=important">
+  </a>
+  <a href="https://github.com/0xDebabrata/citrus/pulls">
+    <img alt="GitHub pull requests" src="https://img.shields.io/github/issues-pr/0xDebabrata/citrus?color=blueviolet">
+  </a>
+</p>
 
 ## Installation
 
