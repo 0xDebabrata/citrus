@@ -1,3 +1,4 @@
+import enum
 import os
 import json
 from typing import Any, Dict, List, Optional
@@ -31,7 +32,7 @@ class LocalAPI:
             # Cleanup previous sqlite data
             shutil.rmtree(self._TEMP_DIRECTORY)
 
-        if persist_directory and database_type == "pg":
+        if persist_directory and (database_type == "pg" or database_type == "postgres"):
             self._SQLClient = PostgresDB(**kwargs)
         else:
             self._SQLClient = SQLiteDB(persist_directory if persist_directory else self._TEMP_DIRECTORY)
@@ -180,13 +181,20 @@ class LocalAPI:
         documents: Optional[List[str]] = None,
         query_embeddings: Optional[NDArray[float32]] = None,
         k=1,
-        filters: Optional[List[Dict]] = None
+        filters: Optional[List[Dict]] = None,
+        include: List[str] = []
     ):
         allowed_ids = []
         if filters is not None:
             allowed_ids = self._SQLClient.filter_vectors(index, filters)
 
         filter_function = lambda label: label in allowed_ids
+
+        included_columns = {"id": True, "document": False, "metadata": False}
+        if "document" in include:
+            included_columns["document"] = True
+        if "metadata" in include:
+            included_columns["metadata"] = True
 
         flag = 1
         for key in self._db.keys():
@@ -198,11 +206,15 @@ class LocalAPI:
                     k=k,
                     filter_function=None if filters is None else filter_function
                 )
-                lolo_vector_ids = self._SQLClient.get_vector_ids_of_results(
+                elements = self._SQLClient.get_vector_ids_of_results(
                     name=index,
-                    results=results
+                    results=results,
+                    include=included_columns
                 )
-                return lolo_vector_ids, distances
+                for i, rows in enumerate(elements):
+                    for j, row in enumerate(rows):
+                        row["distance"] = distances[i][j]
+                return elements
 
         if flag:
             raise ValueError(f"Could not find index: {index}")

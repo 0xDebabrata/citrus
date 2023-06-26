@@ -44,8 +44,9 @@ class BaseDB(ABC):
     def get_vector_ids_of_results(
         self,
         name: str,
-        results: List[List[int]]
-    ) -> List[IDs]:
+        results: List[List[int]],
+        include: Dict
+    ) -> List[List[Dict]]:
         pass
 
     @abstractmethod

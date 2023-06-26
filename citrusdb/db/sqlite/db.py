@@ -4,7 +4,7 @@ from typing import Dict, List, Optional, Tuple
 
 from citrusdb.db import BaseDB
 from citrusdb.utils.types import IDs
-from citrusdb.utils.utils import ensure_valid_path
+from citrusdb.utils.utils import convert_row_to_dict, ensure_valid_path
 import citrusdb.db.sqlite.queries as queries
 from citrusdb.db.sqlite.query_builder import QueryBuilder
 
@@ -101,25 +101,55 @@ class SQLiteDB(BaseDB):
     def get_vector_ids_of_results(
         self,
         name: str,
-        results: List[List[int]]
-    ) -> List[IDs]:
-        lolo_vector_ids = []
+        results: List[List[int]],
+        include: Dict
+    ) -> List[List[Dict]]:
+        cols = "id"
+        if include["document"]:
+            cols += ", text"
+            if include["metadata"]:
+                cols += ", metadata"
+        elif include["metadata"]:
+            cols += ", metadata"
+
+        returning_list = []
         index_details = self.get_index_details(name)
-        index_id = index_details[0]               # type: ignore
+        index_id = index_details[0]                 # type: ignore
 
         cur = self._con.cursor()
         for ids in results:
-            query = queries.GET_VECTOR_IDS_OF_RESULTS.format(", ".join("?" * len(ids)))
+            query = queries.GET_VECTOR_IDS_OF_RESULTS.format(cols, ", ".join("?" * len(ids)))
             parameters = ()
             for id in ids:
                 parameters += (int(id),)
             parameters += (index_id,)
             res = cur.execute(query, parameters)
-            rows = res.fetchall()
-            lolo_vector_ids.append([row[0] for row in rows])
+            unordered_rows = res.fetchall()         # Rows not ordered according to similarity score
+
+            # Order rows according to order of id in ids list
+            ordered_rows = []
+            for id in ids:
+                low = 0; high = len(unordered_rows) - 1
+                while (low <= high):
+                    mid = low + (high - low)//2
+                    curr_vector_id = unordered_rows[mid][0]
+                    if curr_vector_id == id:
+                        ordered_rows.append(
+                            convert_row_to_dict(
+                                row=unordered_rows[mid],
+                                include=include
+                            )
+                        )
+                        break
+                    elif curr_vector_id < id:
+                        low = mid + 1
+                    else:
+                        high = mid - 1
+
+            returning_list.append(ordered_rows)
         cur.close()
 
-        return lolo_vector_ids
+        return returning_list
 
     def insert_to_index(
         self,

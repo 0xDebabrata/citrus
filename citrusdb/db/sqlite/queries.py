@@ -42,9 +42,10 @@ WHERE name = ?
 '''
 
 GET_VECTOR_IDS_OF_RESULTS = '''
-SELECT id
+SELECT vector_id, {}
 FROM index_data
 WHERE vector_id IN ({}) AND index_id = ?
+ORDER BY vector_id ASC
 '''
 
 INSERT_DATA_TO_INDEX = '''
