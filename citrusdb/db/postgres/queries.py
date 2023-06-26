@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS index_data (
 
 DELETE_VECTORS_FROM_INDEX = '''
 DELETE FROM index_data
-WHERE id IN %s AND index_id = %s
+WHERE id = ANY(%s) AND index_id = %s
 RETURNING vector_id
 '''
 
@@ -42,9 +42,10 @@ WHERE name = %s
 '''
 
 GET_VECTOR_IDS_OF_RESULTS = '''
-SELECT id
+SELECT vector_id, {}
 FROM index_data
-WHERE id IN %s AND index_id = %s
+WHERE vector_id = ANY(%s) AND index_id = %s
+ORDER BY vector_id ASC
 '''
 
 INSERT_DATA_TO_INDEX = '''

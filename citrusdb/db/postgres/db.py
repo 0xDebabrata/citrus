@@ -1,9 +1,11 @@
 from psycopg_pool import ConnectionPool
+from psycopg import sql
 from typing import Any, Dict, List, Optional, Tuple
 from citrusdb.db import BaseDB
 import citrusdb.db.postgres.queries as queries
 from citrusdb.db.postgres.query_builder import QueryBuilder
 from citrusdb.utils.types import IDs
+from citrusdb.utils.utils import convert_row_to_dict
 
 
 class PostgresDB(BaseDB):
@@ -105,7 +107,8 @@ class PostgresDB(BaseDB):
     def get_vector_ids_of_results(
         self,
         name: str,
-        results: List[List[int]]
+        results: List[List[int]],
+        include: Dict
     ):
         """
         Get user facing IDs of results
@@ -113,33 +116,71 @@ class PostgresDB(BaseDB):
         name: Name of index
         results: List of list of integer HNSW labels
         """
-        lolo_vector_ids = []
-
         index_details = self.get_index_details(name)
         if not(index_details):
             return
+
+        cols = [sql.Identifier("id")]
+        if include["document"]:
+            cols.append(sql.Identifier("text"))
+            if include["metadata"]:
+                cols.append(sql.Identifier("metadata"))
+        elif include["metadata"]:
+            cols.append(sql.Identifier("metadata"))
+
+        returning_list = []
+        unordered_rows_list = []
         index_id = index_details[0]
 
         with self._pool.connection() as conn:
             with conn.cursor() as cur:
-                data = ()
+                data = []
                 for ids in results:
-                    ids_tuple = tuple(ids)
-                    data = data + (ids_tuple, index_id)
+                    ids_list = []
+                    for id in ids:
+                        ids_list.append(int(id))
+                    data.append([ids_list, index_id])
 
+                query = sql.SQL(queries.GET_VECTOR_IDS_OF_RESULTS).format(
+                    sql.SQL(", ").join(cols)
+                )
                 cur.executemany(
-                    queries.GET_VECTOR_IDS_OF_RESULTS,
-                    data,                                       # type: ignore
+                    query,
+                    data,
                     returning=True
                 )
                 while True:
-                    lolo_vector_ids.append(cur.fetchone())      # type: ignore
+                    rows = cur.fetchall()
+                    unordered_rows_list.append(rows)
                     if not cur.nextset():
                         break;
 
                 conn.commit()
 
-        return lolo_vector_ids
+        # Order rows according to order of id in ids list
+        for i, ids in enumerate(results):
+            unordered_rows = unordered_rows_list[i]
+            ordered_rows = []
+            for id in ids:
+                low = 0; high = len(unordered_rows) - 1
+                while (low <= high):
+                    mid = low + (high - low)//2
+                    curr_vector_id = unordered_rows[mid][0]
+                    if curr_vector_id == id:
+                        ordered_rows.append(
+                            convert_row_to_dict(
+                                row=unordered_rows[mid],
+                                include=include
+                            )
+                        )
+                        break
+                    elif curr_vector_id < id:
+                        low = mid + 1
+                    else:
+                        high = mid - 1
+
+            returning_list.append(ordered_rows)
+        return returning_list
 
     def insert_to_index(
         self,
