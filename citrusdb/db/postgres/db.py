@@ -59,7 +59,7 @@ class PostgresDB(BaseDB):
         with self._pool.connection() as conn:
             with conn.cursor() as cur:
                 for vector_id in cur.execute(queries.DELETE_VECTORS_FROM_INDEX, parameters):
-                    vector_ids.append(vector_id)
+                    vector_ids.append(vector_id[0])
                 conn.commit()
 
         return vector_ids
