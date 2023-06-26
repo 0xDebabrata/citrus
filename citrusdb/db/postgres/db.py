@@ -55,7 +55,7 @@ class PostgresDB(BaseDB):
         """
 
         vector_ids = []
-        parameters = (tuple(ids), index_id)
+        parameters = [ids, index_id]
         with self._pool.connection() as conn:
             with conn.cursor() as cur:
                 for vector_id in cur.execute(queries.DELETE_VECTORS_FROM_INDEX, parameters):
