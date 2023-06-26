@@ -1,8 +1,11 @@
 from psycopg_pool import ConnectionPool
+from psycopg import sql
 from typing import Any, Dict, List, Optional, Tuple
 from citrusdb.db import BaseDB
 import citrusdb.db.postgres.queries as queries
 from citrusdb.db.postgres.query_builder import QueryBuilder
+from citrusdb.utils.types import IDs
+from citrusdb.utils.utils import convert_row_to_dict
 
 
 class PostgresDB(BaseDB):
@@ -42,7 +45,7 @@ class PostgresDB(BaseDB):
     def delete_vectors_from_index(
         self,
         index_id: int,
-        ids: List[int]
+        ids: IDs
     ):
         """
         Delete vectors with given list of IDs from specific index
@@ -50,11 +53,16 @@ class PostgresDB(BaseDB):
         index_id: ID of index where the elements belong
         ids: List of IDs to be deleted
         """
-        parameters = (tuple(ids), index_id)
+
+        vector_ids = []
+        parameters = [ids, index_id]
         with self._pool.connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(queries.DELETE_VECTORS_FROM_INDEX, parameters)
+                for vector_id in cur.execute(queries.DELETE_VECTORS_FROM_INDEX, parameters):
+                    vector_ids.append(vector_id[0])
                 conn.commit()
+
+        return vector_ids
 
     def filter_vectors(self, index_name: str, filters: List[Dict]):
         """
@@ -63,6 +71,7 @@ class PostgresDB(BaseDB):
         index_name: Name of index where the elements belong
         filters: List of filters to be applied
         """
+
         with self._pool.connection() as conn:
             query_builder = QueryBuilder(conn)
             res = query_builder.execute_query(index_name, filters)
@@ -95,6 +104,84 @@ class PostgresDB(BaseDB):
                 cur.execute(queries.GET_INDEX_DETAILS_BY_NAME, parameters)
                 return cur.fetchone()
 
+    def get_vector_ids_of_results(
+        self,
+        name: str,
+        results: List[List[int]],
+        include: Dict
+    ):
+        """
+        Get user facing IDs of results
+
+        name: Name of index
+        results: List of list of integer HNSW labels
+        """
+        index_details = self.get_index_details(name)
+        if not(index_details):
+            return
+
+        cols = [sql.Identifier("id")]
+        if include["document"]:
+            cols.append(sql.Identifier("text"))
+            if include["metadata"]:
+                cols.append(sql.Identifier("metadata"))
+        elif include["metadata"]:
+            cols.append(sql.Identifier("metadata"))
+
+        returning_list = []
+        unordered_rows_list = []
+        index_id = index_details[0]
+
+        with self._pool.connection() as conn:
+            with conn.cursor() as cur:
+                data = []
+                for ids in results:
+                    ids_list = []
+                    for id in ids:
+                        ids_list.append(int(id))
+                    data.append([ids_list, index_id])
+
+                query = sql.SQL(queries.GET_VECTOR_IDS_OF_RESULTS).format(
+                    sql.SQL(", ").join(cols)
+                )
+                cur.executemany(
+                    query,
+                    data,
+                    returning=True
+                )
+                while True:
+                    rows = cur.fetchall()
+                    unordered_rows_list.append(rows)
+                    if not cur.nextset():
+                        break;
+
+                conn.commit()
+
+        # Order rows according to order of id in ids list
+        for i, ids in enumerate(results):
+            unordered_rows = unordered_rows_list[i]
+            ordered_rows = []
+            for id in ids:
+                low = 0; high = len(unordered_rows) - 1
+                while (low <= high):
+                    mid = low + (high - low)//2
+                    curr_vector_id = unordered_rows[mid][0]
+                    if curr_vector_id == id:
+                        ordered_rows.append(
+                            convert_row_to_dict(
+                                row=unordered_rows[mid],
+                                include=include
+                            )
+                        )
+                        break
+                    elif curr_vector_id < id:
+                        low = mid + 1
+                    else:
+                        high = mid - 1
+
+            returning_list.append(ordered_rows)
+        return returning_list
+
     def insert_to_index(
         self,
         data
@@ -104,10 +191,18 @@ class PostgresDB(BaseDB):
 
         data: Tuple of tuples corresponding to each row
         """
+        vector_ids = []
         with self._pool.connection() as conn:
             with conn.cursor() as cur:
-                cur.executemany(queries.INSERT_DATA_TO_INDEX, data)
+                cur.executemany(queries.INSERT_DATA_TO_INDEX, data, returning=True)
+                while True:
+                    vector_ids.append(cur.fetchone()[0])        # type: ignore
+                    if not cur.nextset():
+                        break;
+
                 conn.commit()
+
+        return vector_ids
 
     def update_ef(
         self,

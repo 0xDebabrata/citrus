@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Tuple, Optional
 
+from citrusdb.utils.types import IDs
+
 
 class BaseDB(ABC):
     @abstractmethod
@@ -19,8 +21,8 @@ class BaseDB(ABC):
     def delete_vectors_from_index(
         self,
         index_id: int,
-        ids: List[int]
-    ):
+        ids: IDs
+    ) -> List[int]:
         pass
 
     @abstractmethod
@@ -39,10 +41,19 @@ class BaseDB(ABC):
         pass
 
     @abstractmethod
+    def get_vector_ids_of_results(
+        self,
+        name: str,
+        results: List[List[int]],
+        include: Dict
+    ) -> List[List[Dict]]:
+        pass
+
+    @abstractmethod
     def insert_to_index(
         self,
         data
-    ):
+    ) -> List[int]:
         pass
 
     @abstractmethod

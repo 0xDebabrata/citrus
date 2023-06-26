@@ -3,7 +3,8 @@ import sqlite3
 from typing import Dict, List, Optional, Tuple
 
 from citrusdb.db import BaseDB
-from citrusdb.utils.utils import ensure_valid_path
+from citrusdb.utils.types import IDs
+from citrusdb.utils.utils import convert_row_to_dict, ensure_valid_path
 import citrusdb.db.sqlite.queries as queries
 from citrusdb.db.sqlite.query_builder import QueryBuilder
 
@@ -52,14 +53,19 @@ class SQLiteDB(BaseDB):
     def delete_vectors_from_index(
         self,
         index_id: int,
-        ids: List[int]
+        ids: IDs
     ):
         cur = self._con.cursor()
         query = queries.DELETE_VECTORS_FROM_INDEX.format(", ".join("?" * len(ids)))
         parameters = tuple(ids) + (index_id,)
         cur.execute(query, parameters)
+
+        rows = cur.fetchall()
         self._con.commit()
         cur.close()
+
+        vector_ids = [row[0] for row in rows]
+        return vector_ids
 
     def filter_vectors(self, index_name: str, filters: List[Dict]):
         query_builder = QueryBuilder(self._con)
@@ -92,14 +98,73 @@ class SQLiteDB(BaseDB):
         cur.close()
         return row
 
+    def get_vector_ids_of_results(
+        self,
+        name: str,
+        results: List[List[int]],
+        include: Dict
+    ) -> List[List[Dict]]:
+        cols = "id"
+        if include["document"]:
+            cols += ", text"
+            if include["metadata"]:
+                cols += ", metadata"
+        elif include["metadata"]:
+            cols += ", metadata"
+
+        returning_list = []
+        index_details = self.get_index_details(name)
+        index_id = index_details[0]                 # type: ignore
+
+        cur = self._con.cursor()
+        for ids in results:
+            query = queries.GET_VECTOR_IDS_OF_RESULTS.format(cols, ", ".join("?" * len(ids)))
+            parameters = ()
+            for id in ids:
+                parameters += (int(id),)
+            parameters += (index_id,)
+            res = cur.execute(query, parameters)
+            unordered_rows = res.fetchall()         # Rows not ordered according to similarity score
+
+            # Order rows according to order of id in ids list
+            ordered_rows = []
+            for id in ids:
+                low = 0; high = len(unordered_rows) - 1
+                while (low <= high):
+                    mid = low + (high - low)//2
+                    curr_vector_id = unordered_rows[mid][0]
+                    if curr_vector_id == id:
+                        ordered_rows.append(
+                            convert_row_to_dict(
+                                row=unordered_rows[mid],
+                                include=include
+                            )
+                        )
+                        break
+                    elif curr_vector_id < id:
+                        low = mid + 1
+                    else:
+                        high = mid - 1
+
+            returning_list.append(ordered_rows)
+        cur.close()
+
+        return returning_list
+
     def insert_to_index(
         self,
         data
     ):
         cur = self._con.cursor()
-        cur.executemany(queries.INSERT_DATA_TO_INDEX, data)
+        vector_ids = []
+        for row in data:
+            res = cur.execute(queries.INSERT_DATA_TO_INDEX, row)
+            vector_ids.append(res.fetchone()[0])
+
         self._con.commit()
         cur.close()
+
+        return vector_ids
 
     def update_ef(
         self,

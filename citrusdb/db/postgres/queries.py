@@ -13,19 +13,21 @@ CREATE TABLE IF NOT EXISTS index_manager (
 
 CREATE_INDEX_DATA_TABLE = '''
 CREATE TABLE IF NOT EXISTS index_data (
-    id BIGINT,
+    vector_id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    id text NOT NULL,
     index_id BIGINT,
     text TEXT,
     embedding JSONB NOT NULL,
     metadata JSONB,
-    PRIMARY KEY(id, index_id),
+    UNIQUE(id, index_id),
     FOREIGN KEY(index_id) REFERENCES index_manager(index_id) ON DELETE CASCADE
 );
 '''
 
 DELETE_VECTORS_FROM_INDEX = '''
 DELETE FROM index_data
-WHERE id IN %s AND index_id = %s
+WHERE id = ANY(%s) AND index_id = %s
+RETURNING vector_id
 '''
 
 GET_ALL_INDEX_DETAILS = '''
@@ -39,11 +41,20 @@ FROM index_manager
 WHERE name = %s
 '''
 
+GET_VECTOR_IDS_OF_RESULTS = '''
+SELECT vector_id, {}
+FROM index_data
+WHERE vector_id = ANY(%s) AND index_id = %s
+ORDER BY vector_id ASC
+'''
+
 INSERT_DATA_TO_INDEX = '''
 INSERT INTO index_data
+(id, index_id, text, embedding, metadata)
 VALUES(%s, %s, %s, %s, %s)
 ON CONFLICT(id, index_id)
 DO UPDATE SET id = %s, index_id = %s, text = %s, embedding = %s, metadata = %s
+RETURNING vector_id
 '''
 
 INSERT_INDEX_TO_MANAGER = '''
