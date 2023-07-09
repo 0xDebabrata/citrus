@@ -1,18 +1,6 @@
 # 🍋 citrus.
 ### open-source (distributed) vector database
 
-<p align="center">
-  Special thanks to
-</p>
-<p align="center">
-  <img align="center" src="https://www.getdevkit.com/logo.png" width=100 height=100 alt="DevKit" />
-</p>
-<p align="center">
-  <a href="https://www.getdevkit.com">DevKit - The Essential Developer Toolkit</a><br />
-  DSoC 2023
-</p>
-
-
 ## Installation
 
 ```
@@ -71,3 +59,17 @@ Go launch a repl on [Replit](https://replit.com) and see what result you get aft
 Feel free to open issues on this repository! Discord server coming soon!
 
 PS: citrus isn't distributed just yet. We're getting there though ;)
+
+---
+<p align="center">
+  Special thanks to
+</p>
+<p align="center">
+  <img align="center" src="https://www.getdevkit.com/logo.png" width=50 height=50 alt="DevKit" />
+</p>
+<p align="center">
+  <a href="https://www.getdevkit.com">DevKit - The Essential Developer Toolkit</a><br />
+  DSoC 2023
+</p>
+
+
