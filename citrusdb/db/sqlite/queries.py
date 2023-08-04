@@ -35,6 +35,12 @@ SELECT index_id, name, dimensions, max_elements, m, ef, ef_construction, allow_r
 FROM index_manager
 '''
 
+GET_ALL_VECTORS = '''
+SELECT vector_id, embedding, {}
+FROM index_data
+WHERE index_id = ?
+'''
+
 GET_INDEX_DETAILS_BY_NAME = '''
 SELECT index_id, name, dimensions, max_elements, m, ef, ef_construction, allow_replace_deleted
 FROM index_manager

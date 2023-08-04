@@ -104,6 +104,25 @@ class PostgresDB(BaseDB):
                 cur.execute(queries.GET_INDEX_DETAILS_BY_NAME, parameters)
                 return cur.fetchone()
 
+    def get_all_vectors_in_index(self, name: str, include: Dict) -> List[Dict]:
+        """
+        Get all vectors in index
+
+        name: Name of index
+        include: Dictionary of columns to be returned
+        """
+        index_details = self.get_index_details(name)
+        if index_details is None:
+            raise ValueError(f"Index '{name}' does not exist")
+
+        index_id = index_details[0]
+        parameters = (index_id,)
+        with self._pool.connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(queries.GET_ALL_VECTORS, parameters)
+                rows = cur.fetchall()
+                return [convert_row_to_dict(row=row, include=include, with_embedding=True) for row in rows]
+
     def get_vector_ids_of_results(
         self,
         name: str,
@@ -115,10 +134,11 @@ class PostgresDB(BaseDB):
 
         name: Name of index
         results: List of list of integer HNSW labels
+        include: Dictionary of columns to be returned
         """
         index_details = self.get_index_details(name)
-        if not(index_details):
-            return
+        if index_details is None:
+            raise ValueError(f"Index '{name}' does not exist")
 
         cols = [sql.Identifier("id")]
         if include["document"]:
