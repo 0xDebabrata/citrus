@@ -98,6 +98,27 @@ class SQLiteDB(BaseDB):
         cur.close()
         return row
 
+    def get_all_vectors_in_index(self, name: str, include: Dict) -> List[Dict]:
+        cols = "id"
+        if include["document"]:
+            cols += ", text"
+            if include["metadata"]:
+                cols += ", metadata"
+        elif include["metadata"]:
+            cols += ", metadata"
+
+        index_details = self.get_index_details(name)
+        index_id = index_details[0]                 # type: ignore
+
+        cur = self._con.cursor()
+        query = queries.GET_ALL_VECTORS.format(cols)
+        parameters = (index_id,)
+        res = cur.execute(query, parameters)
+        rows = res.fetchall()
+        cur.close()
+
+        return [convert_row_to_dict(row=row, include=include, with_embedding=True) for row in rows]
+
     def get_vector_ids_of_results(
         self,
         name: str,

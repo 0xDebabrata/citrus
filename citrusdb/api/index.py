@@ -112,7 +112,7 @@ class Index:
         if query_embeddings is None and documents is None:
             raise ValueError("Please provide either an embedding" + " or a document.")
 
-        if documents is not None:
+        if (query_embeddings is None) and (documents is not None):
             from citrusdb.embedding.openai import get_embeddings
 
             embeddings = get_embeddings(documents)

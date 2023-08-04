@@ -41,6 +41,14 @@ class BaseDB(ABC):
         pass
 
     @abstractmethod
+    def get_all_vectors_in_index(
+        self,
+        name: str,
+        include: Dict
+    ) -> List[Dict]:
+        pass
+
+    @abstractmethod
     def get_vector_ids_of_results(
         self,
         name: str,

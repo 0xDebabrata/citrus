@@ -1,4 +1,3 @@
-import enum
 import os
 import json
 from typing import Any, Dict, List, Optional
@@ -10,6 +9,7 @@ from citrusdb.api.index import Index
 from citrusdb.db import BaseDB
 from citrusdb.db.postgres.db import PostgresDB
 from citrusdb.db.sqlite.db import SQLiteDB
+from citrusdb.embedding.utils import get_cosine_similarity
 from citrusdb.utils.types import IDs
 
 
@@ -102,7 +102,7 @@ class LocalAPI:
             # Check whether the dimensions are equal
             if embedding_dim != index_dim:
                 raise ValueError(
-                        f"Embedding dimenstion ({embedding_dim}) and index "
+                        f"Embedding dimension ({embedding_dim}) and index "
                         + f"dimension ({index_dim}) do not match."
                         )
 
@@ -200,25 +200,53 @@ class LocalAPI:
         for key in self._db.keys():
             if key == index:
                 flag = 0
-                results, distances = self._db[key].query(
-                    documents=documents,
-                    query_embeddings=query_embeddings,
-                    k=k,
-                    filter_function=None if filters is None else filter_function
-                )
-                elements = self._SQLClient.get_vector_ids_of_results(
-                    name=index,
-                    results=results,
-                    include=included_columns
-                )
-                for i, rows in enumerate(elements):
-                    for j, row in enumerate(rows):
-                        row["distance"] = distances[i][j]
-                return elements
 
+                try:
+                    results, distances = self._db[key].query(
+                        documents=documents,
+                        query_embeddings=query_embeddings,
+                        k=k,
+                        filter_function=None if filters is None else filter_function
+                    )
+                    elements = self._SQLClient.get_vector_ids_of_results(
+                        name=index,
+                        results=results,
+                        include=included_columns
+                    )
+                    for i, rows in enumerate(elements):
+                        for j, row in enumerate(rows):
+                            row["distance"] = distances[i][j]
+                    return elements
+                except RuntimeError as error:
+                    # Return all vectors currently in index
+                    # Deals with error when top_k is higher than no. of vectors indexed.
+                    # Error: Cannot return the results in a contigious 2D array. Probably ef or M is too small
+                    print("ERROR:", error, "-- Falling back to existing vectors in index")
+                    indexed_elements = self._SQLClient.get_all_vectors_in_index(
+                        name=index,
+                        include=included_columns
+                    )
+                    if (query_embeddings is None):
+                        if documents is None:
+                            raise Exception("Neither documents nor query embeddings provided.")
+                        from citrusdb.embedding.openai import get_embeddings
+
+                        embeddings = get_embeddings(documents)
+                        query_embeddings = embeddings
+
+                    returning_elements = []
+                    for i, query in enumerate(query_embeddings):
+                        results = []
+                        for element in indexed_elements:
+                            item = {**element}
+                            item["distance"] = 1 - get_cosine_similarity(query, element["embedding"])
+                            del item["embedding"]
+                            results.append(item)
+                        results.sort(key=lambda e : e["distance"])
+                        returning_elements.append(results)
+                    return returning_elements
         if flag:
             raise ValueError(f"Could not find index: {index}")
-
 
     def get_status(self, index: str):
         flag = 1

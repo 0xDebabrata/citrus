@@ -30,6 +30,12 @@ WHERE id = ANY(%s) AND index_id = %s
 RETURNING vector_id
 '''
 
+GET_ALL_VECTORS = '''
+SELECT vector_id, embedding, {}
+FROM index_data
+WHERE index_id = %s
+'''
+
 GET_ALL_INDEX_DETAILS = '''
 SELECT index_id, name, dimensions, max_elements, m, ef, ef_construction, allow_replace_deleted
 FROM index_manager
