@@ -4,7 +4,12 @@ from typing import Dict, Optional, Tuple
 
 def convert_row_to_dict(row: Tuple, include: Dict, with_embedding: bool = False):
     if with_embedding:
-        returning_dict = {"id": row[2], "embedding": json.loads(row[1])}
+        # On Postgres embedding is stored as a list of floating points
+        if isinstance(row[1], str):
+            returning_dict = {"id": row[2], "embedding": json.loads(row[1])}
+        else:
+            returning_dict = {"id": row[2], "embedding": row[1]}
+
         if include["document"]:
             returning_dict["document"] = row[3]
             if include["metadata"]:
