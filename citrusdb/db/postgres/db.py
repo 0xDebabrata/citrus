@@ -115,11 +115,22 @@ class PostgresDB(BaseDB):
         if index_details is None:
             raise ValueError(f"Index '{name}' does not exist")
 
+        cols = [sql.Identifier("id")]
+        if include["document"]:
+            cols.append(sql.Identifier("text"))
+            if include["metadata"]:
+                cols.append(sql.Identifier("metadata"))
+        elif include["metadata"]:
+            cols.append(sql.Identifier("metadata"))
+
         index_id = index_details[0]
         parameters = (index_id,)
         with self._pool.connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(queries.GET_ALL_VECTORS, parameters)
+                query = sql.SQL(queries.GET_ALL_VECTORS).format(
+                    sql.SQL(", ").join(cols)
+                )
+                cur.execute(query, parameters)
                 rows = cur.fetchall()
                 return [convert_row_to_dict(row=row, include=include, with_embedding=True) for row in rows]
 
