@@ -39,6 +39,7 @@ GET_ALL_VECTORS = '''
 SELECT vector_id, embedding, {}
 FROM index_data
 WHERE index_id = ?
+LIMIT 100
 '''
 
 GET_INDEX_DETAILS_BY_NAME = '''
