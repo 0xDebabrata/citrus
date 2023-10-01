@@ -3,7 +3,7 @@
 
 ## Installation
 
-```
+```bash
 pip install citrusdb
 ```
 
@@ -53,9 +53,11 @@ By default, only the IDs are returned.
 Go launch a repl on [Replit](https://replit.com) and see what result you get after running the query! `result` will contain the `ids` of the top `k` search hits.
 
 ## Example
+[chat w/ replit ai podcast](https://replit.searchcitrus.com)
+
 [pokedex search](https://replit.com/@debabratajr/pokedex-search)
 
 ## Facing issues?
 Feel free to open issues on this repository! Discord server coming soon!
 
-PS: citrus isn't distributed just yet. We're getting there though ;)
+*PS: citrus isn't fully distributed just yet. We're getting there though ;)*
