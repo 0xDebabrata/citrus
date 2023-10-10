@@ -1,6 +1,6 @@
 import os
 import pickle
-from typing import Any, List, Optional
+from typing import List, Optional
 from numpy import float32
 from numpy._typing import NDArray
 from citrusdb.db.index.hnswlib import HnswIndex
@@ -20,8 +20,9 @@ class Index:
         M: int = 64,
         ef_construction: int = 200,
         allow_replace_deleted: bool = False,
+        dimension: int = 1536
     ):
-        self._db = HnswIndex(id=name)
+        self._db = HnswIndex(id=name, dim=dimension)
 
         self._parameters = {
             "index_name": name,

@@ -40,6 +40,7 @@ class LocalAPI:
     def create_index(
         self,
         name: str,
+        dimension: int = 1536,
         max_elements: int = 1000,
         M: int = 64,
         ef_construction: int = 200,
@@ -51,7 +52,8 @@ class LocalAPI:
                 max_elements,
                 M,
                 ef_construction,
-                allow_replace_deleted
+                allow_replace_deleted,
+                dimensions=dimension
             )
 
         self._db[name] = Index(
@@ -60,7 +62,8 @@ class LocalAPI:
             persist_directory=self.persist_directory,
             M=M,
             ef_construction=ef_construction,
-            allow_replace_deleted=allow_replace_deleted
+            allow_replace_deleted=allow_replace_deleted,
+            dimension=dimension
         )
 
     def add(
