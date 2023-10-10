@@ -1,11 +1,11 @@
 [project]
 name = "citrusdb"
-version = "0.6.0"
+version = "0.6.1"
 
 authors = [
   { name="Debabrata Mondal", email="debabrata.js@protonmail.com" },
 ]
-description = "open-source vector database. store and retrieve embeddings for your next project!"
+description = "open-source vector database. store and retrieve embeddings for your next ai project!"
 readme = "README.md"
 requires-python = ">=3.7"
 classifiers = [
