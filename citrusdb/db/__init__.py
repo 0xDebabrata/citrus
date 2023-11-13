@@ -18,6 +18,13 @@ class BaseDB(ABC):
         pass
 
     @abstractmethod
+    def delete_index(
+        self,
+        index_name: str,
+    ) -> List[int]:
+        pass
+
+    @abstractmethod
     def delete_vectors_from_index(
         self,
         index_id: int,

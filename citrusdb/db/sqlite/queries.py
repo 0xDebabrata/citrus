@@ -24,6 +24,11 @@ CREATE TABLE IF NOT EXISTS index_data (
 );
 '''
 
+DELETE_INDEX = '''
+DELETE FROM index_manager
+WHERE name = ?
+'''
+
 DELETE_VECTORS_FROM_INDEX = '''
 DELETE FROM index_data
 WHERE id IN ({}) AND index_id = ?

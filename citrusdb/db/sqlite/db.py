@@ -50,6 +50,15 @@ class SQLiteDB(BaseDB):
         self._con.commit()
         cur.close()
 
+    def delete_index(
+        self,
+        index_name: str,
+    ):
+        cur = self._con.cursor()
+        parameters = (index_name,)
+        cur.execute(queries.DELETE_INDEX, parameters)
+        cur.close()
+
     def delete_vectors_from_index(
         self,
         index_id: int,
