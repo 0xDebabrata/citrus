@@ -264,11 +264,7 @@ class LocalAPI:
             raise ValueError(f"Could not find index: {index}")
 
     def get_status(self, index: str):
-        flag = 1
-        for key in self._db.keys():
-            if key == index:
-                flag = 0
-                self._db[key].get_status()
-
-        if flag:
+        if index in self._db.keys():
+            self._db[index].get_status()
+        else:
             raise ValueError(f"Could not find index: {index}")
