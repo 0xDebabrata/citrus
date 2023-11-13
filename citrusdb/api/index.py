@@ -34,6 +34,7 @@ class Index:
         }
 
         if persist_directory:
+            self.params_file_name = f"{self._parameters['index_name']}.params"
             self._load_params()
 
             if ensure_valid_path(persist_directory, str(self._parameters["index_name"])):
@@ -72,12 +73,26 @@ class Index:
             self._save()
 
     def _load_params(self):
-        if ensure_valid_path(self._parameters["persist_directory"], ".citrus_params"):
+        if ensure_valid_path(self._parameters["persist_directory"], self.params_file_name):
             filename = os.path.join(
-                self._parameters["persist_directory"], ".citrus_params"
+                self._parameters["persist_directory"], self.params_file_name
             )
             with open(filename, "rb") as f:
                 self._parameters = pickle.load(f)
+
+    def delete_index(self):
+        # Remove saved index from disk
+        os.remove(
+            os.path.join(
+                self._parameters["persist_directory"], self._parameters["index_name"]
+            )
+        )
+        # Remove saved params from disk
+        os.remove(
+            os.path.join(
+                self._parameters["persist_directory"], self.params_file_name
+            )
+        )
 
     def delete_vectors(self, ids: List[int]):
         for id in ids:
@@ -95,7 +110,7 @@ class Index:
 
     def _save_params(self):
         output_file = os.path.join(
-            self._parameters["persist_directory"], ".citrus_params"
+            self._parameters["persist_directory"], self.params_file_name
         )
         with open(output_file, "wb") as f:
             pickle.dump(self._parameters, f)

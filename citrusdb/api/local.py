@@ -134,6 +134,18 @@ class LocalAPI:
                 replace_deleted=replace_deleted
             )
 
+    def delete_index(
+        self,
+        index: str,
+    ):
+        if index not in self._db.keys():
+            raise ValueError(f"Index does not exist: {index}")
+
+        self._SQLClient.delete_index(
+            index_name=index
+        )
+        self._db[index].delete_index()
+
     def delete_vectors(
         self,
         index: str,
