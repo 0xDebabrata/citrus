@@ -54,9 +54,23 @@ class SQLiteDB(BaseDB):
         self,
         index_name: str,
     ):
+        """
+        Delete an entire index from citrus.
+        -
+        Parameters:
+        ===========
+
+        `index_name` (str): Name of the index that is to be deleted.
+
+        Returns:
+        ========
+        None
+        """
+
         cur = self._con.cursor()
         parameters = (index_name,)
         cur.execute(queries.DELETE_INDEX, parameters)
+        self._con.commit()
         cur.close()
 
     def delete_vectors_from_index(

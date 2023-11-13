@@ -42,6 +42,30 @@ class PostgresDB(BaseDB):
                 cur.execute(queries.INSERT_INDEX_TO_MANAGER, parameters)
                 conn.commit()
 
+    def delete_index(
+        self,
+        index_name: str
+    ):
+        """
+        Delete an entire index from citrus.
+        -
+        Parameters:
+        ===========
+
+        `index_name` (str): Name of the index that is to be deleted.
+
+        Returns:
+        ========
+
+        None
+        """
+
+        parameters = [index_name]
+        with self._pool.connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(queries.DELETE_INDEX, parameters)
+                conn.commit()
+
     def delete_vectors_from_index(
         self,
         index_id: int,
@@ -49,9 +73,18 @@ class PostgresDB(BaseDB):
     ):
         """
         Delete vectors with given list of IDs from specific index
+        -
 
-        index_id: ID of index where the elements belong
-        ids: List of IDs to be deleted
+        Parameters:
+        ===========
+
+        `index_id` (int): ID of index where the elements belong
+        `ids` (IDs): List of IDs to be deleted
+
+        Returns:
+        ========
+
+        List of vector ids (internal ID) that were deleted.
         """
 
         vector_ids = []
