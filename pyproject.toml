@@ -1,6 +1,6 @@
 [project]
 name = "citrusdb"
-version = "0.6.3"
+version = "0.6.4"
 
 authors = [
   { name="Debabrata Mondal", email="debabrata.js@protonmail.com" },
