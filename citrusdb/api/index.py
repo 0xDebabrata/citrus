@@ -80,18 +80,18 @@ class Index:
             with open(filename, "rb") as f:
                 self._parameters = pickle.load(f)
 
-    def delete_index(self):
+    @staticmethod
+    def delete_index(persist_directory: str, index_name: str):
         # Remove saved index from disk
         os.remove(
-            os.path.join(
-                self._parameters["persist_directory"], self._parameters["index_name"]
-            )
+            os.path.join(persist_directory, index_name)
         )
         # Remove saved params from disk
+        # Ensure parmas file name is used consistently.
+        # We cannot use self.params_file_name since thise method needs to be
+        # static to prevent loading entire index to memory unnecessarily.
         os.remove(
-            os.path.join(
-                self._parameters["persist_directory"], self.params_file_name
-            )
+            os.path.join(persist_directory, f"{index_name}.params")
         )
 
     def delete_vectors(self, ids: List[int]):

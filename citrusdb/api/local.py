@@ -138,13 +138,15 @@ class LocalAPI:
         self,
         index: str,
     ):
-        if index not in self._db.keys():
-            raise ValueError(f"Index does not exist: {index}")
+        if self.persist_directory:
+            # Ensures index files are removed from disk without loading them
+            # into memory.
+            # Reduces memory usage for Lambda.
+            Index.delete_index(self.persist_directory, index)
 
         self._SQLClient.delete_index(
             index_name=index
         )
-        self._db[index].delete_index()
 
     def delete_vectors(
         self,
