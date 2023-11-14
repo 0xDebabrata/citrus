@@ -83,16 +83,23 @@ class Index:
     @staticmethod
     def delete_index(persist_directory: str, index_name: str):
         # Remove saved index from disk
-        os.remove(
+        if os.path.exists(
             os.path.join(persist_directory, index_name)
-        )
+        ):
+            os.remove(
+                os.path.join(persist_directory, index_name)
+            )
         # Remove saved params from disk
         # Ensure parmas file name is used consistently.
         # We cannot use self.params_file_name since thise method needs to be
         # static to prevent loading entire index to memory unnecessarily.
-        os.remove(
-            os.path.join(persist_directory, f"{index_name}.params")
-        )
+        params_file_name = f"{index_name}.params"
+        if os.path.exists(
+            os.path.join(persist_directory, params_file_name)
+        ):
+            os.remove(
+                os.path.join(persist_directory, params_file_name)
+            )
 
     def delete_vectors(self, ids: List[int]):
         for id in ids:
