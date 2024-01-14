@@ -38,7 +38,7 @@ RETURNING vector_id
 GET_ALL_INDEX_DETAILS = '''
 SELECT im.index_id, im.name, im.dimensions, im.max_elements, im.m, im.ef, im.ef_construction, im.allow_replace_deleted, COUNT(id.vector_id)
 FROM index_manager im
-LEFT JOIN index_data id
+LEFT JOIN index_data id ON im.index_id = id.index_id
 GROUP BY im.index_id, im.name, im.dimensions, im.max_elements, im.m, im.ef, im.ef_construction, im.allow_replace_deleted;
 '''
 
