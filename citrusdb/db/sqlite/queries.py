@@ -36,8 +36,10 @@ RETURNING vector_id
 '''
 
 GET_ALL_INDEX_DETAILS = '''
-SELECT index_id, name, dimensions, max_elements, m, ef, ef_construction, allow_replace_deleted
-FROM index_manager
+SELECT im.index_id, im.name, im.dimensions, im.max_elements, im.m, im.ef, im.ef_construction, im.allow_replace_deleted, COUNT(id.vector_id)
+FROM index_manager im
+LEFT JOIN index_data id
+GROUP BY im.index_id, im.name, im.dimensions, im.max_elements, im.m, im.ef, im.ef_construction, im.allow_replace_deleted;
 '''
 
 GET_ALL_VECTORS = '''
