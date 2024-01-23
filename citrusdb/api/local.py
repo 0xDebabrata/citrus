@@ -176,6 +176,7 @@ class LocalAPI:
             # Load index
             self.create_index(
                 name=index_name,
+                dimension=index[2],
                 max_elements=index[3],
                 M=index[4],
                 ef_construction=index[6],
