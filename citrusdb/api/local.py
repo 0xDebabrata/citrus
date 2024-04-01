@@ -176,6 +176,7 @@ class LocalAPI:
             # Load index
             self.create_index(
                 name=index_name,
+                dimension=index[2],
                 max_elements=index[3],
                 M=index[4],
                 ef_construction=index[6],
@@ -183,6 +184,28 @@ class LocalAPI:
             )
             # Set ef value
             self._db[index_name].set_ef(index[5])
+
+    def reload_index(self, index_name: str):
+        """
+        Load a single index from disk to memory.
+        """
+        index = self._SQLClient.get_index_details(index_name)
+        if index:
+            index_name = index[1]
+            # Load index
+            self.create_index(
+                name=index_name,
+                dimension=index[2],
+                max_elements=index[3],
+                M=index[4],
+                ef_construction=index[6],
+                allow_replace_deleted=index[7]
+            )
+            # Set ef value
+            self._db[index_name].set_ef(index[5])
+        else:
+            raise ValueError(f"Cannot find index: {index_name}")
+
 
     def set_ef(self, index: str, ef: int):
         index_details = self._SQLClient.get_index_details(index)
